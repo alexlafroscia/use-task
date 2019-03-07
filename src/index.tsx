@@ -9,13 +9,11 @@ import wait from "./wait";
 async function DoTheThing() {
   await wait(1000);
 
-  console.count("Did the thing");
-
   return "Done!";
 }
 
 function App() {
-  const [task, taskState] = useTask(DoTheThing, { concurrency: "drop" });
+  const [task, taskState] = useTask(DoTheThing, { keep: "all" });
 
   return (
     <div className="App">

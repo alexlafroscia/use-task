@@ -3,18 +3,14 @@ import { act } from "react-dom/test-utils";
 import { fireEvent, render } from "react-testing-library";
 import "jest-dom/extend-expect";
 
-import { AsyncWork, PerformWork } from "../helpers";
-import { waitForTaskCompletion } from "../index";
+import { AsyncWork, PerformWork } from "../../helpers";
+import { waitForTaskCompletion } from "../../index";
 
-test("it can prevent simultaneous async work", async () => {
+test("it prevents simultaneous async work", async () => {
   const done = jest.fn();
 
   const { getByText, getByTestId } = render(
-    <PerformWork
-      work={AsyncWork}
-      taskConfig={{ concurrency: "drop" }}
-      done={done}
-    />
+    <PerformWork work={AsyncWork} taskConfig={{ keep: "first" }} done={done} />
   );
 
   act(() => {

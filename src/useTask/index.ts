@@ -1,16 +1,14 @@
 import { useCallback, useReducer, useState } from "react";
+import TaskInstance, { perform } from "./instance";
 
-const VALID_CONCURRENCY_TYPES = ["default", "drop"];
 const TASK_POOL = new Set();
 
-async function addRunningTask(task) {
+async function addRunningTask<T>(task: T) {
   TASK_POOL.add(task);
 
-  const result = await task;
+  await task;
 
   TASK_POOL.delete(task);
-
-  return result;
 }
 
 /**
@@ -44,21 +42,17 @@ function publicStateReducer(state, action) {
 }
 
 export type UseTaskConfig = {
-  concurrency?: "default" | "drop";
+  keep: "first" | "all";
 };
 
-export default function useTask<T extends Function>(
-  task: T,
-  { concurrency = "default" }: UseTaskConfig = {}
+export default function useTask<Arguments extends any[], ReturnValue>(
+  task: (...args: Arguments) => ReturnValue,
+  { keep = "all" }: UseTaskConfig = { keep: "all" }
 ) {
-  if (!VALID_CONCURRENCY_TYPES.includes(concurrency)) {
-    throw new Error("Unknown concurrency type");
-  }
-
   // Ensure that we don't change concurrency strategies after the task has been set up
-  const [privateState] = useState({ concurrency });
-  if (concurrency !== privateState.concurrency) {
-    throw new Error("Cannot dynamically change concurrency type");
+  const [privateState] = useState({ keep });
+  if (keep !== privateState.keep) {
+    throw new Error("Cannot dynamically change how to handle concurrent tasks");
   }
 
   const [publicState, publicStateDispatch] = useReducer(publicStateReducer, {
@@ -67,19 +61,27 @@ export default function useTask<T extends Function>(
     result: undefined
   });
 
+  const instance = new TaskInstance(task);
+
   const runCallback = useCallback(
     async (...args) => {
-      if (concurrency === "drop" && publicState.isRunning) {
+      if (keep === "first" && publicState.isRunning) {
         return;
       }
 
       publicStateDispatch({ type: "start" });
 
-      const result = await addRunningTask(task(...args));
+      const promiseToResult = perform(instance, args as Arguments);
+
+      addRunningTask(promiseToResult);
+
+      const result = await promiseToResult;
 
       publicStateDispatch({ type: "finish", result });
+
+      return result;
     },
-    [task, publicState.isRunning]
+    [instance, publicState.isRunning]
   );
 
   return [runCallback, publicState];
