@@ -4,7 +4,7 @@ import { fireEvent, render } from "react-testing-library";
 import "jest-dom/extend-expect";
 
 import { AsyncWork, PerformWork } from "../../helpers";
-import { waitForTaskCompletion } from "../../index";
+import { waitForTaskCompletion } from "../../test-helpers";
 
 test("it allows multiple tasks to run at a time", async () => {
   const done = jest.fn();

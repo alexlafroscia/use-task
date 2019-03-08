@@ -1,100 +1,76 @@
-import { useCallback, useReducer, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import TaskInstance, { AnyFunction, perform } from "./instance";
+import { addRunningTask } from "./test-helpers";
 
-const TASK_POOL = new Set();
+type KeepValue = "first" | "all";
 
-async function addRunningTask<T>(task: T) {
-  TASK_POOL.add(task);
+type InternalTaskState<F extends AnyFunction> = {
+  keep: KeepValue;
+  instances: TaskInstance<F>[];
+  lastSuccessful?: TaskInstance<F>;
+};
 
-  await task;
-
-  TASK_POOL.delete(task);
-}
-
-/**
- * @param {number} interval how frequently to check if all tasks have completed
- */
-export function waitForTaskCompletion(interval = 0) {
-  return new Promise(resolve => {
-    const timer = setInterval(() => {
-      if (TASK_POOL.size === 0) {
-        clearInterval(timer);
-        resolve();
-      }
-    }, interval);
-  });
-}
-
-function publicStateReducer(state, action) {
-  switch (action.type) {
-    case "start":
-      return { ...state, isRunning: true };
-    case "finish":
-      return {
-        ...state,
-        isRunning: false,
-        lastSuccessful: action.instance,
-        performCount: state.performCount + 1
-      };
-    default:
-      throw new Error();
-  }
-}
+type TaskState<F extends AnyFunction> = {
+  isRunning: boolean;
+  performCount: number;
+  lastSuccessful?: TaskInstance<F>;
+};
 
 type Tuple<A, B> = [A, B];
 
-type PublicState<T> = {
-  isRunning: boolean;
-  performCount: number;
-  lastSuccessful: T;
-};
-
 export type UseTaskConfig = {
-  keep: "first" | "all";
+  keep: KeepValue;
 };
 
 export default function useTask<T extends AnyFunction>(
-  task: T,
+  taskDefinition: T,
   { keep = "all" }: UseTaskConfig = { keep: "all" }
-): Tuple<
-  (...args: Parameters<T>) => TaskInstance<T>,
-  PublicState<TaskInstance<T>>
-> {
-  // Ensure that we don't change concurrency strategies after the task has been set up
-  const [privateState] = useState({ keep });
-  if (keep !== privateState.keep) {
-    throw new Error("Cannot dynamically change how to handle concurrent tasks");
-  }
-
-  const [publicState, publicStateDispatch] = useReducer(publicStateReducer, {
-    isRunning: false,
-    performCount: 0,
+): Tuple<(...args: Parameters<T>) => TaskInstance<T>, TaskState<T>> {
+  const [taskState, setTaskState] = useState<InternalTaskState<T>>({
+    keep,
+    instances: [],
     lastSuccessful: undefined
   });
 
-  const instance = new TaskInstance(task);
+  if (keep !== taskState.keep) {
+    throw new Error("Cannot dynamically change how to handle concurrent tasks");
+  }
+
+  const derivedState = useMemo<TaskState<T>>(
+    () => ({
+      isRunning: taskState.instances.some(t => t.isRunning),
+      performCount: taskState.instances.length,
+      lastSuccessful: taskState.lastSuccessful
+    }),
+    [taskState.instances, taskState.lastSuccessful]
+  );
+
+  const instance = new TaskInstance(taskDefinition);
 
   const runCallback = useCallback(
     (...args) => {
-      if (keep === "first" && publicState.isRunning) {
+      setTaskState(state => ({
+        ...state,
+        instances: [...state.instances, instance]
+      }));
+
+      if (keep === "first" && derivedState.isRunning) {
         instance.cancel();
         return instance;
       }
-
-      publicStateDispatch({ type: "start" });
 
       const promiseToResult = perform(instance, args as Parameters<T>);
 
       addRunningTask(promiseToResult);
 
       promiseToResult.then(() => {
-        publicStateDispatch({ type: "finish", instance });
+        setTaskState(state => ({ ...state, lastSuccessful: instance }));
       });
 
       return instance;
     },
-    [instance, publicState.isRunning]
+    [instance, derivedState.isRunning]
   );
 
-  return [runCallback, publicState];
+  return [runCallback, derivedState];
 }

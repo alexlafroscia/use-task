@@ -4,7 +4,7 @@ import { fireEvent, render } from "react-testing-library";
 import "jest-dom/extend-expect";
 
 import { AsyncWork, PerformWork } from "../../helpers";
-import { waitForTaskCompletion } from "../../index";
+import { waitForTaskCompletion } from "../../test-helpers";
 
 test("it prevents simultaneous async work", async () => {
   const done = jest.fn();
@@ -24,5 +24,5 @@ test("it prevents simultaneous async work", async () => {
   await waitForTaskCompletion();
 
   expect(done).toBeCalledTimes(1);
-  expect(getByTestId("perform-count")).toHaveTextContent("1");
+  expect(getByTestId("perform-count")).toHaveTextContent("2");
 });
