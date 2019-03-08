@@ -1,5 +1,5 @@
 import { useCallback, useReducer, useState } from "react";
-import TaskInstance, { perform } from "./instance";
+import TaskInstance, { AnyFunction, perform } from "./instance";
 
 const TASK_POOL = new Set();
 
@@ -33,7 +33,7 @@ function publicStateReducer(state, action) {
       return {
         ...state,
         isRunning: false,
-        result: action.result,
+        lastSuccessful: action.instance,
         performCount: state.performCount + 1
       };
     default:
@@ -41,14 +41,25 @@ function publicStateReducer(state, action) {
   }
 }
 
+type Tuple<A, B> = [A, B];
+
+type PublicState<T> = {
+  isRunning: boolean;
+  performCount: number;
+  lastSuccessful: T;
+};
+
 export type UseTaskConfig = {
   keep: "first" | "all";
 };
 
-export default function useTask<Arguments extends any[], ReturnValue>(
-  task: (...args: Arguments) => ReturnValue,
+export default function useTask<T extends AnyFunction>(
+  task: T,
   { keep = "all" }: UseTaskConfig = { keep: "all" }
-) {
+): Tuple<
+  (...args: Parameters<T>) => TaskInstance<T>,
+  PublicState<TaskInstance<T>>
+> {
   // Ensure that we don't change concurrency strategies after the task has been set up
   const [privateState] = useState({ keep });
   if (keep !== privateState.keep) {
@@ -58,28 +69,29 @@ export default function useTask<Arguments extends any[], ReturnValue>(
   const [publicState, publicStateDispatch] = useReducer(publicStateReducer, {
     isRunning: false,
     performCount: 0,
-    result: undefined
+    lastSuccessful: undefined
   });
 
   const instance = new TaskInstance(task);
 
   const runCallback = useCallback(
-    async (...args) => {
+    (...args) => {
       if (keep === "first" && publicState.isRunning) {
-        return;
+        instance.cancel();
+        return instance;
       }
 
       publicStateDispatch({ type: "start" });
 
-      const promiseToResult = perform(instance, args as Arguments);
+      const promiseToResult = perform(instance, args as Parameters<T>);
 
       addRunningTask(promiseToResult);
 
-      const result = await promiseToResult;
+      promiseToResult.then(() => {
+        publicStateDispatch({ type: "finish", instance });
+      });
 
-      publicStateDispatch({ type: "finish", result });
-
-      return result;
+      return instance;
     },
     [instance, publicState.isRunning]
   );
