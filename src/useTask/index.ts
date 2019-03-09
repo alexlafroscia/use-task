@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import TaskInstance, { AnyFunction, perform } from "./instance";
 import { addRunningTask } from "./test-helpers";
 
-type KeepValue = "first" | "all";
+type KeepValue = "first" | "last" | "all";
 
 type InternalTaskState<F extends AnyFunction> = {
   keep: KeepValue;
@@ -47,30 +47,36 @@ export default function useTask<T extends AnyFunction>(
 
   const instance = new TaskInstance(taskDefinition);
 
-  const runCallback = useCallback(
-    (...args) => {
-      setTaskState(state => ({
-        ...state,
-        instances: [...state.instances, instance]
-      }));
+  const runCallback = (...args) => {
+    setTaskState(state => ({
+      ...state,
+      instances: [...state.instances, instance]
+    }));
 
-      if (keep === "first" && derivedState.isRunning) {
-        instance.cancel();
-        return instance;
-      }
-
-      const promiseToResult = perform(instance, args as Parameters<T>);
-
-      addRunningTask(promiseToResult);
-
-      promiseToResult.then(() => {
-        setTaskState(state => ({ ...state, lastSuccessful: instance }));
-      });
-
+    if (keep === "first" && derivedState.isRunning) {
+      instance.cancel();
       return instance;
-    },
-    [instance, derivedState.isRunning]
-  );
+    }
+
+    if (keep === "last" && derivedState.isRunning) {
+      // Cancel all of the running tasks
+      taskState.instances
+        .filter(i => i.isRunning)
+        .forEach(i => {
+          i.cancel();
+        });
+    }
+
+    const promiseToResult = perform(instance, args as Parameters<T>);
+
+    addRunningTask(promiseToResult);
+
+    promiseToResult.then(() => {
+      setTaskState(state => ({ ...state, lastSuccessful: instance }));
+    });
+
+    return instance;
+  };
 
   return [runCallback, derivedState];
 }

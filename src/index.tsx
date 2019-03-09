@@ -6,16 +6,16 @@ import "./styles.css";
 import useTask from "./useTask";
 import wait from "./wait";
 
-async function DoTheThing(notice: String = "Done!") {
-  await wait(1000);
+function* DoTheThing(notice: String = "Done!") {
+  yield wait(1000);
 
   return notice;
 }
 
 function App() {
-  const [task, taskState] = useTask(DoTheThing, { keep: "all" });
+  const [task, taskState] = useTask(DoTheThing, { keep: "last" });
 
-  const ref = useRef<ReturnType<typeof task>>();
+  const ref = useRef<any>();
 
   return (
     <div className="App">
@@ -24,10 +24,10 @@ function App() {
       <p>The task has run {taskState.performCount} times</p>
 
       <button
-        onClick={() => {
-          const instance = task();
+        onClick={async () => {
+          const value = await task();
 
-          ref.current = instance;
+          ref.current = value;
         }}
       >
         {taskState.isRunning ? "Running..." : "Run the task!"}
@@ -35,7 +35,7 @@ function App() {
 
       <br />
 
-      {ref.current ? ref.current.result : "No result from latest task"}
+      {ref.current ? ref.current : "No result from latest task"}
     </div>
   );
 }
