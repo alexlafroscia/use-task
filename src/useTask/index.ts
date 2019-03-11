@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import TaskInstance, { AnyFunction, perform } from "./instance";
 import { addRunningTask } from "./test-helpers";
 
@@ -45,38 +45,41 @@ export default function useTask<T extends AnyFunction>(
     [taskState.instances, taskState.lastSuccessful]
   );
 
-  const instance = new TaskInstance(taskDefinition);
+  const runCallback = useCallback(
+    (...args) => {
+      const instance = new TaskInstance(taskDefinition);
 
-  const runCallback = (...args) => {
-    setTaskState(state => ({
-      ...state,
-      instances: [...state.instances, instance]
-    }));
+      setTaskState(state => ({
+        ...state,
+        instances: [...state.instances, instance]
+      }));
 
-    if (keep === "first" && derivedState.isRunning) {
-      instance.cancel();
+      if (keep === "first" && derivedState.isRunning) {
+        instance.cancel();
+        return instance;
+      }
+
+      if (keep === "last" && derivedState.isRunning) {
+        // Cancel all of the running tasks
+        taskState.instances
+          .filter(i => i.isRunning)
+          .forEach(i => {
+            i.cancel();
+          });
+      }
+
+      const promiseToResult = perform(instance, args as Parameters<T>);
+
+      addRunningTask(promiseToResult);
+
+      promiseToResult.then(() => {
+        setTaskState(state => ({ ...state, lastSuccessful: instance }));
+      });
+
       return instance;
-    }
-
-    if (keep === "last" && derivedState.isRunning) {
-      // Cancel all of the running tasks
-      taskState.instances
-        .filter(i => i.isRunning)
-        .forEach(i => {
-          i.cancel();
-        });
-    }
-
-    const promiseToResult = perform(instance, args as Parameters<T>);
-
-    addRunningTask(promiseToResult);
-
-    promiseToResult.then(() => {
-      setTaskState(state => ({ ...state, lastSuccessful: instance }));
-    });
-
-    return instance;
-  };
+    },
+    [derivedState.isRunning, keep, taskDefinition, taskState.instances]
+  );
 
   return [runCallback, derivedState];
 }
