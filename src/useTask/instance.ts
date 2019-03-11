@@ -77,6 +77,7 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
   complete(result: R) {
     this.isRunning = false;
     this.isComplete = true;
+    this.result = result;
     this.resolve(result);
   }
 

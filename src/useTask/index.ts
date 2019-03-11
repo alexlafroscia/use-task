@@ -1,4 +1,5 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useRef } from "react";
+import useWillUnmount from "@rooks/use-will-unmount";
 import TaskInstance, { AnyFunction, perform } from "./instance";
 import { addRunningTask } from "./test-helpers";
 
@@ -17,6 +18,10 @@ type TaskState<F extends AnyFunction> = {
 };
 
 type Tuple<A, B> = [A, B];
+
+function cancelAllInstances(instances: TaskInstance<any>[]): void {
+  instances.filter(i => i.isRunning).forEach(i => i.cancel());
+}
 
 export type UseTaskConfig = {
   keep: KeepValue;
@@ -45,6 +50,13 @@ export default function useTask<T extends AnyFunction>(
     [taskState.instances, taskState.lastSuccessful]
   );
 
+  // Use a `ref` so that we cancel on the latest state, not the initial state
+  const stateRef = useRef<InternalTaskState<T>>(taskState);
+  stateRef.current = taskState;
+  useWillUnmount(() => {
+    cancelAllInstances(stateRef.current.instances);
+  });
+
   const runCallback = useCallback(
     (...args) => {
       const instance = new TaskInstance(taskDefinition);
@@ -60,12 +72,7 @@ export default function useTask<T extends AnyFunction>(
       }
 
       if (keep === "last" && derivedState.isRunning) {
-        // Cancel all of the running tasks
-        taskState.instances
-          .filter(i => i.isRunning)
-          .forEach(i => {
-            i.cancel();
-          });
+        cancelAllInstances(taskState.instances);
       }
 
       const promiseToResult = perform(instance, args as Parameters<T>);
@@ -73,7 +80,9 @@ export default function useTask<T extends AnyFunction>(
       addRunningTask(promiseToResult);
 
       promiseToResult.then(() => {
-        setTaskState(state => ({ ...state, lastSuccessful: instance }));
+        if (!instance.isCancelled) {
+          setTaskState(state => ({ ...state, lastSuccessful: instance }));
+        }
       });
 
       return instance;
