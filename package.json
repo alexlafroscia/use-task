@@ -8,11 +8,20 @@
     "task"
   ],
   "main": "src/index.js",
+  "scripts": {
+    "build": "pack build",
+    "test": "node scripts/test.js --env=jsdom",
+    "lint": "eslint ."
+  },
   "dependencies": {
     "@rooks/use-will-unmount": "^1.1.0",
     "react": "^16.8.0"
   },
   "devDependencies": {
+    "@pika/pack": "^0.3.5",
+    "@pika/plugin-build-node": "^0.3.14",
+    "@pika/plugin-build-web": "^0.3.14",
+    "@pika/plugin-ts-standard-pkg": "^0.3.14",
     "@types/jest": "^24.0.9",
     "@types/node": "^11.10.5",
     "@types/react": "^16.8.7",
@@ -34,10 +43,6 @@
     "ts-jest": "^24.0.0",
     "typescript": "^3.3.3333"
   },
-  "scripts": {
-    "test": "node scripts/test.js --env=jsdom",
-    "lint": "eslint ."
-  },
   "jest": {
     "collectCoverageFrom": [
       "src/**/*.{js,jsx,ts,tsx}",
@@ -52,7 +57,7 @@
     "testEnvironment": "jsdom",
     "testURL": "http://localhost",
     "transform": {
-      "^.+\\.(js|jsx|ts|tsx)$": "ts-jest"
+      "^.+\\.(ts|tsx)$": "ts-jest"
     },
     "moduleFileExtensions": [
       "js",
@@ -63,6 +68,25 @@
     "watchPlugins": [
       "jest-watch-typeahead/filename",
       "jest-watch-typeahead/testname"
+    ]
+  },
+  "@pika/pack": {
+    "pipeline": [
+      [
+        "@pika/plugin-ts-standard-pkg",
+        {
+          "exclude": [
+            "src/__tests__/**/*.*",
+            "src/helpers.tsx"
+          ]
+        }
+      ],
+      [
+        "@pika/plugin-build-node"
+      ],
+      [
+        "@pika/plugin-build-web"
+      ]
     ]
   }
 }
