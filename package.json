@@ -1,17 +1,18 @@
 {
-  "name": "usetask-hook",
+  "name": "use-task",
   "version": "1.0.0",
-  "description": "A React hook to provide a concurrency system similar to Ember's `ember-concurrency` addon",
+  "description": "A React hook for running and cancelling asynchronous tasks",
+  "license": "MIT",
   "keywords": [
     "hooks",
     "react",
     "task"
   ],
-  "main": "src/index.js",
   "scripts": {
     "build": "pack build",
-    "test": "node scripts/test.js --env=jsdom",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "release": "pack publish",
+    "test": "node scripts/test.js --env=jsdom"
   },
   "dependencies": {
     "@rooks/use-will-unmount": "^1.1.0",
