@@ -1,7 +1,6 @@
 import React from "react";
 
-import wait from "../wait";
-import useTask, { UseTaskConfig } from "./index";
+import useTask, { UseTaskConfig, timeout } from "./index";
 import { isCancellationError } from "./cancellation-error";
 
 type CallBack = () => void;
@@ -12,13 +11,13 @@ export function SyncWork(done: CallBack) {
 }
 
 export async function AsyncWork(done: CallBack) {
-  await wait(0);
+  await timeout();
 
   done();
 }
 
 export function* CancellableAsyncWork(done: CallBack) {
-  yield wait(0);
+  yield timeout();
 
   done();
 }

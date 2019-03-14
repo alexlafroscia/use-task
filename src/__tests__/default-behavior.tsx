@@ -1,6 +1,6 @@
 import React from "react";
 import { act } from "react-dom/test-utils";
-import { fireEvent, render } from "react-testing-library";
+import { cleanup, fireEvent, render } from "react-testing-library";
 import "jest-dom/extend-expect";
 
 import {
@@ -10,6 +10,8 @@ import {
   PerformWork
 } from "../helpers";
 import { waitForTaskCompletion } from "../test-helpers";
+
+afterEach(cleanup);
 
 test("it can perform some synchronous work", async () => {
   const done = jest.fn();
@@ -25,7 +27,7 @@ test("it can perform some synchronous work", async () => {
   expect(done).toBeCalled();
 });
 
-test("it can perform some asynchronous work", async () => {
+test("it can perform an async function", async () => {
   const done = jest.fn();
 
   const { getByText, getByTestId } = render(
@@ -47,7 +49,7 @@ test("it can perform some asynchronous work", async () => {
   expect(getByTestId("is-running")).toHaveTextContent("false");
 });
 
-test("it can perform some asynchronous work through a generator", async () => {
+test("it can perform a generator function", async () => {
   const done = jest.fn();
 
   const { getByText, getByTestId } = render(

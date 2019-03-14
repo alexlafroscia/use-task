@@ -92,3 +92,5 @@ export default function useTask<T extends AnyFunction>(
 
   return [runCallback, derivedState];
 }
+
+export { default as timeout } from "./timeout";

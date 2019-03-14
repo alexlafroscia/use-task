@@ -1,12 +1,11 @@
 import React from "react";
 import { act } from "react-dom/test-utils";
-import { fireEvent, render } from "react-testing-library";
+import { cleanup, fireEvent, render } from "react-testing-library";
 import "jest-dom/extend-expect";
 
 import { CancellableAsyncWork, PerformWork } from "../helpers";
-import useTask from "../index";
+import useTask, { timeout } from "../index";
 import { waitForTaskCompletion } from "../test-helpers";
-import wait from "../../wait";
 
 beforeEach(function() {
   jest.spyOn(console, "error");
@@ -15,6 +14,8 @@ beforeEach(function() {
 afterEach(function() {
   jest.restoreAllMocks();
 });
+
+afterEach(cleanup);
 
 test("it cancels the task when the component is unmounted", async () => {
   const { getByText, container } = render(
@@ -35,7 +36,7 @@ test("it cancels the task when the component is unmounted", async () => {
 test("does not cancel when props change", async () => {
   function PerformWorkWithChange({ name = "World" }) {
     const [performWork, taskState] = useTask(function*() {
-      yield wait(0);
+      yield timeout();
 
       return "Done!";
     });

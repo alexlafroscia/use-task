@@ -1,10 +1,12 @@
 import React from "react";
 import { act } from "react-dom/test-utils";
-import { fireEvent, render } from "react-testing-library";
+import { cleanup, fireEvent, render } from "react-testing-library";
 import "jest-dom/extend-expect";
 
 import { AsyncWork, PerformWork } from "../../helpers";
 import { waitForTaskCompletion } from "../../test-helpers";
+
+afterEach(cleanup);
 
 test("it prevents simultaneous async work", async () => {
   const done = jest.fn();

@@ -1,10 +1,12 @@
 import React from "react";
-import { render } from "react-testing-library";
+import { cleanup, render } from "react-testing-library";
 
 import { SyncWork, PerformWork } from "../helpers";
 
+afterEach(cleanup);
+
 test("it prevents changing concurrency strategies", () => {
-  spyOn(console, "error");
+  jest.spyOn(console, "error").mockImplementation();
 
   const { container } = render(<PerformWork work={SyncWork} />);
 

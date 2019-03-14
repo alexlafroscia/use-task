@@ -16,9 +16,9 @@ export async function perform<F extends AnyFunction>(
 ) {
   task.begin();
 
-  let result;
+  let result = task.fn(...args);
 
-  if (task.fn.constructor.name === "GeneratorFunction") {
+  if (result && typeof result.next === "function") {
     let isFinished = false,
       lastResolvedValue;
     const generator = task.fn(...args);
@@ -43,7 +43,7 @@ export async function perform<F extends AnyFunction>(
   } else {
     // If a non-Generator function is provided, user is opting out of correct
     // cancellation behavior. At least for now, we don't want to prevent that
-    result = await task.fn(...args);
+    result = await result;
   }
 
   if (!task.isCancelled) {
