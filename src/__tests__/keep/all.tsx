@@ -6,7 +6,7 @@ import "jest-dom/extend-expect";
 import { AsyncWork, PerformWork } from "../../helpers";
 import { waitForTaskCompletion } from "../../test-helpers";
 import useTask from "../../index";
-import Deferred from "../../deffered";
+import Deferred from "../../deferred";
 
 afterEach(cleanup);
 
