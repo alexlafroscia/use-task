@@ -12,7 +12,7 @@
     "build": "pack build",
     "lint": "eslint .",
     "release": "pack publish",
-    "test": "node scripts/test.js --env=jsdom"
+    "test": "jest"
   },
   "dependencies": {
     "@rooks/use-will-unmount": "^1.1.0",
