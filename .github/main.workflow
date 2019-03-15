@@ -1,6 +1,6 @@
 workflow "Build and Test" {
   on = "push"
-  resolves = ["Run Tests"]
+  resolves = ["Run Tests", "Run Linting"]
 }
 
 action "Install Dependencies" {
@@ -15,4 +15,10 @@ action "Run Tests" {
   env = {
     CI = "true"
   }
+}
+
+action "Run Linting" {
+  uses = "nuxt/actions-yarn@master"
+  needs = ["Install Dependencies"]
+  args = "lint"
 }
