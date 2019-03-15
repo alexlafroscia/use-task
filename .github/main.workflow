@@ -12,4 +12,7 @@ action "Run Tests" {
   uses = "nuxt/actions-yarn@master"
   needs = ["Install Dependencies"]
   args = "test"
+  env = {
+    CI = "true"
+  }
 }
