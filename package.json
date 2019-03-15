@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "build": "pack build",
-    "lint": "eslint .",
+    "lint": "eslint . --ext js --ext jsx --ext ts --ext tsx",
     "release": "pack publish",
     "test": "jest"
   },

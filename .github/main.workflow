@@ -20,5 +20,5 @@ action "Run Tests" {
 action "Run Linting" {
   uses = "nuxt/actions-yarn@master"
   needs = ["Install Dependencies"]
-  args = "lint"
+  args = "lint -f tap"
 }
