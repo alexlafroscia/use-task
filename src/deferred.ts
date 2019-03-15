@@ -3,7 +3,7 @@ export default class Deferred<T> implements Promise<T> {
   resolve!: (result: T) => void;
   reject!: (reason: any) => void;
 
-  [Symbol.toStringTag] = "Defferred";
+  [Symbol.toStringTag] = "Deferred";
 
   constructor() {
     this.promise = new Promise((resolve, reject) => {

@@ -1,4 +1,4 @@
-import Deferred from "./deffered";
+import Deferred from "./deferred";
 import CancellationError from "./cancellation-error";
 
 export type AnyFunction = (...args: any[]) => any;
