@@ -29,7 +29,7 @@ export type UseTaskConfig = {
 
 export default function useTask<T extends AnyFunction>(
   taskDefinition: T,
-  { keep = "all" }: UseTaskConfig = { keep: "all" }
+  { keep = "last" }: UseTaskConfig = { keep: "last" }
 ): Tuple<(...args: Parameters<T>) => TaskInstance<T>, TaskState<T>> {
   const [taskState, setTaskState] = useState<InternalTaskState<T>>({
     keep,
