@@ -1,5 +1,5 @@
 import Deferred from "./deferred";
-import CancellationError from "./cancellation-error";
+import CancellationError, { isCancellationError } from "./cancellation-error";
 
 export type AnyFunction = (...args: any[]) => any;
 type Generator = (...args: any[]) => IterableIterator<any>;
@@ -33,9 +33,23 @@ export async function perform<F extends AnyFunction>(
       // Advance the generator with the last resolved value, so that
       // a user can treat the `yield` like `async/await` and get the
       // last value out of it. We can also use this for nested tasks
+
       const { value, done } = generator.next(lastResolvedValue);
 
-      lastResolvedValue = await value;
+      if (value instanceof TaskInstance) {
+        value.setParent(task);
+      }
+
+      try {
+        lastResolvedValue = await value;
+      } catch (e) {
+        if (isCancellationError(e) && task.isCancelled) {
+          break;
+        } else {
+          throw e;
+        }
+      }
+
       isFinished = done;
     }
 
@@ -46,8 +60,10 @@ export async function perform<F extends AnyFunction>(
     result = await result;
   }
 
-  if (!task.isCancelled) {
-    task.complete(result);
+  if (task.isCancelled) {
+    task.reject(task.error);
+  } else {
+    task.resolve(result);
   }
 }
 
@@ -57,6 +73,7 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
   fn: Func;
 
   result?: R;
+  error?: Error;
 
   isCancelled = false;
   isRunning = false;
@@ -64,28 +81,76 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
 
   [Symbol.toStringTag] = "TaskInstance";
 
+  private parentInstance?: TaskInstance<any>;
+  private onCancelCallbacks: Array<AnyFunction> = [];
+
   constructor(fn: Func) {
     super();
 
     this.fn = fn;
   }
 
+  /**
+   * Subscribe to a task instance being cancelled
+   * @param cb callback that will be run if this task is cancelled
+   */
+  onCancel(cb: AnyFunction) {
+    this.onCancelCallbacks.push(cb);
+  }
+
+  /**
+   * Set a parent task instance on a task
+   *
+   * A parent task is one that, when performed, executes another task
+   *
+   * This establishes a relationship where, in a case where a parent
+   * task is cancelled, the "child" task is also cancelled
+   *
+   * @param parent parent task instance
+   */
+  setParent(parent: TaskInstance<any>) {
+    this.parentInstance = parent;
+
+    this.parentInstance.onCancel(e => {
+      if (isCancellationError(e)) {
+        this.cancel(e);
+      } else {
+        throw e;
+      }
+    });
+  }
+
   begin() {
     this.isRunning = true;
   }
 
-  complete(result: R) {
+  resolve(result: R) {
     this.isRunning = false;
     this.isComplete = true;
     this.result = result;
-    this.resolve(result);
+
+    super.resolve(result);
   }
 
-  cancel() {
-    const error = new CancellationError("Task Cancelled");
+  reject(reason: any) {
+    this.isRunning = false;
+    this.isComplete = true;
+    this.error = reason;
 
+    super.reject(reason);
+  }
+
+  cancel(error = new CancellationError("Task Cancelled")) {
+    if (this.isCancelled) {
+      return;
+    }
+
+    this.error = error;
     this.isCancelled = true;
-    this.reject(error);
+
+    for (const callback of this.onCancelCallbacks) {
+      callback(error);
+    }
   }
 }
 
