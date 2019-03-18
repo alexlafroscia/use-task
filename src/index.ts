@@ -94,4 +94,4 @@ export default function useTask<T extends AnyFunction>(
 }
 
 export { default as timeout } from "./timeout";
-export { isCancellationError } from "./cancellation-error";
+export { isCancellationError, ignoreCancellation } from "./cancellation-error";

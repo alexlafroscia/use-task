@@ -1,7 +1,6 @@
 import React from "react";
 
-import useTask, { UseTaskConfig, timeout } from "./index";
-import { isCancellationError } from "./cancellation-error";
+import useTask, { UseTaskConfig, timeout, ignoreCancellation } from "./index";
 
 type CallBack = () => void;
 type Work = (done: CallBack) => void;
@@ -33,15 +32,9 @@ export function PerformWork({
 }) {
   const [performWork, workTaskState] = useTask(work, taskConfig);
 
-  const handleClick = async () => {
-    try {
-      await performWork(done);
-    } catch (e) {
-      if (!isCancellationError(e)) {
-        throw e;
-      }
-    }
-  };
+  const handleClick = ignoreCancellation(async () => {
+    await performWork(done);
+  });
 
   return (
     <>
