@@ -1,44 +1,14 @@
-import React from "react";
-import { act } from "react-dom/test-utils";
-import { fireEvent, render, wait } from "react-testing-library";
-import "jest-dom/extend-expect";
-
-import useTask, { timeout, isCancellationError } from "../index";
+import { isCancellationError } from "../index";
+import CancellationError from "../cancellation-error";
 
 test("it can detect a cancellation error", async () => {
-  let error;
-
-  function SurfaceCancellationError() {
-    const [perform] = useTask(function*() {
-      yield timeout();
-    });
-
-    return (
-      <button
-        onClick={async () => {
-          try {
-            await perform();
-          } catch (e) {
-            error = e;
-          }
-        }}
-      >
-        Perform
-      </button>
-    );
-  }
-
-  const { getByText } = render(<SurfaceCancellationError />);
-
-  act(() => {
-    fireEvent.click(getByText("Perform"));
-  });
-
-  act(() => {
-    fireEvent.click(getByText("Perform"));
-  });
-
-  await wait();
+  const error = new CancellationError("Task Cancelled");
 
   expect(isCancellationError(error)).toBeTruthy();
+});
+
+test("it does not recognize other errors", async () => {
+  const error = new Error("Task Cancelled");
+
+  expect(isCancellationError(error)).toBeFalsy();
 });
