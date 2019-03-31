@@ -80,7 +80,7 @@ export default function useTask<T extends AnyFunction>(
       addRunningTask(promiseToResult);
 
       promiseToResult.then(() => {
-        if (!instance.isCancelled) {
+        if (!instance.isCancelled && !instance.error) {
           setTaskState(state => ({ ...state, lastSuccessful: instance }));
         }
       });

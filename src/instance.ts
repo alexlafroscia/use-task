@@ -33,24 +33,24 @@ export async function perform<F extends AnyFunction>(
       // Advance the generator with the last resolved value, so that
       // a user can treat the `yield` like `async/await` and get the
       // last value out of it. We can also use this for nested tasks
-
-      const { value, done } = generator.next(lastResolvedValue);
-
-      if (value instanceof TaskInstance) {
-        value.setParent(task);
-      }
-
       try {
-        lastResolvedValue = await value;
-      } catch (e) {
-        if (isCancellationError(e) && task.isCancelled) {
-          break;
-        } else {
-          throw e;
-        }
-      }
+        const { value, done } = generator.next(lastResolvedValue);
 
-      isFinished = done;
+        if (value instanceof TaskInstance) {
+          value.setParent(task);
+        }
+
+        lastResolvedValue = await value;
+        isFinished = done;
+      } catch (e) {
+        if (isCancellationError(e)) {
+          task.cancel(e);
+        } else {
+          task.reject(e);
+        }
+
+        return;
+      }
     }
 
     result = lastResolvedValue;
@@ -60,11 +60,7 @@ export async function perform<F extends AnyFunction>(
     result = await result;
   }
 
-  if (task.isCancelled) {
-    task.reject(task.error);
-  } else {
-    task.resolve(result);
-  }
+  task.resolve(result);
 }
 
 class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
@@ -145,8 +141,8 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
       return;
     }
 
-    this.error = error;
     this.isCancelled = true;
+    this.reject(error);
 
     for (const callback of this.onCancelCallbacks) {
       callback(error);
