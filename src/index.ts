@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback, useRef } from "react";
 import useWillUnmount from "@rooks/use-will-unmount";
-import TaskInstance, { AnyFunction, perform } from "./instance";
+import TaskInstance, { AnyFunction } from "./instance";
+import perform from "./perform";
 
 export type KeepValue = "first" | "last" | "all";
 
