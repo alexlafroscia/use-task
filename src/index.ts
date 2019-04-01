@@ -1,9 +1,8 @@
 import { useMemo, useState, useCallback, useRef } from "react";
 import useWillUnmount from "@rooks/use-will-unmount";
 import TaskInstance, { AnyFunction, perform } from "./instance";
-import { addRunningTask } from "./test-helpers";
 
-type KeepValue = "first" | "last" | "all";
+export type KeepValue = "first" | "last" | "all";
 
 type InternalTaskState<F extends AnyFunction> = {
   keep: KeepValue;
@@ -38,7 +37,8 @@ export default function useTask<T extends AnyFunction>(
   });
 
   if (keep !== taskState.keep) {
-    throw new Error("Cannot dynamically change how to handle concurrent tasks");
+    // eslint-disable-next-line no-console
+    console.warn("Cannot dynamically change how to handle concurrent tasks");
   }
 
   const derivedState = useMemo<TaskState<T>>(
@@ -76,8 +76,6 @@ export default function useTask<T extends AnyFunction>(
       }
 
       const promiseToResult = perform(instance, args as Parameters<T>);
-
-      addRunningTask(promiseToResult);
 
       promiseToResult.then(() => {
         if (!instance.isCancelled && !instance.error) {

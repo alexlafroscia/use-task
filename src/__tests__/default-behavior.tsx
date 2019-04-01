@@ -1,28 +1,24 @@
-import React from "react";
-import { act } from "react-dom/test-utils";
-import { cleanup, fireEvent, render } from "react-testing-library";
-import "jest-dom/extend-expect";
-
-import {
-  SyncWork,
-  AsyncWork,
-  CancellableAsyncWork,
-  PerformWork
-} from "../helpers";
-import { waitForTaskCompletion } from "../test-helpers";
+import { renderHook, cleanup, act } from "react-hooks-testing-library";
+import useTask, { timeout } from "..";
 
 afterEach(cleanup);
+
+function perform(result) {
+  result.current[0]();
+}
+
+function stateFor(result) {
+  return result.current[1];
+}
 
 test("it can perform some synchronous work", async () => {
   const done = jest.fn();
 
-  const { getByText } = render(<PerformWork work={SyncWork} done={done} />);
+  const { result, waitForNextUpdate } = renderHook(() => useTask(done));
 
-  act(() => {
-    fireEvent.click(getByText("Perform Work"));
-  });
+  act(() => perform(result));
 
-  await waitForTaskCompletion();
+  await waitForNextUpdate();
 
   expect(done).toBeCalled();
 });
@@ -30,43 +26,45 @@ test("it can perform some synchronous work", async () => {
 test("it can perform an async function", async () => {
   const done = jest.fn();
 
-  const { getByText, getByTestId } = render(
-    <PerformWork work={AsyncWork} done={done} />
+  const { result, waitForNextUpdate } = renderHook(() =>
+    useTask(async () => {
+      await timeout(0);
+      done();
+    })
   );
 
-  expect(getByTestId("is-running")).toHaveTextContent("false");
-  expect(getByTestId("perform-count")).toHaveTextContent("0");
+  expect(stateFor(result).isRunning).toBe(false);
+  expect(stateFor(result).performCount).toBe(0);
 
-  act(() => {
-    fireEvent.click(getByText("Perform Work"));
-  });
+  act(() => perform(result));
 
-  expect(getByTestId("is-running")).toHaveTextContent("true");
+  expect(stateFor(result).isRunning).toBe(true);
 
-  await waitForTaskCompletion();
+  await waitForNextUpdate();
 
   expect(done).toBeCalled();
-  expect(getByTestId("is-running")).toHaveTextContent("false");
+  expect(stateFor(result).isRunning).toBe(false);
 });
 
 test("it can perform a generator function", async () => {
   const done = jest.fn();
 
-  const { getByText, getByTestId } = render(
-    <PerformWork work={CancellableAsyncWork} done={done} />
+  const { result, waitForNextUpdate } = renderHook(() =>
+    useTask(function*() {
+      yield timeout(0);
+      done();
+    })
   );
 
-  expect(getByTestId("is-running")).toHaveTextContent("false");
-  expect(getByTestId("perform-count")).toHaveTextContent("0");
+  expect(stateFor(result).isRunning).toBe(false);
+  expect(stateFor(result).performCount).toBe(0);
 
-  act(() => {
-    fireEvent.click(getByText("Perform Work"));
-  });
+  act(() => perform(result));
 
-  expect(getByTestId("is-running")).toHaveTextContent("true");
+  expect(stateFor(result).isRunning).toBe(true);
 
-  await waitForTaskCompletion();
+  await waitForNextUpdate();
 
   expect(done).toBeCalled();
-  expect(getByTestId("is-running")).toHaveTextContent("false");
+  expect(stateFor(result).isRunning).toBe(false);
 });

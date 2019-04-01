@@ -1,18 +1,24 @@
-import React from "react";
-import { cleanup, render } from "react-testing-library";
-
-import { SyncWork, PerformWork } from "../helpers";
+/* eslint-disable no-console */
+import { renderHook, cleanup } from "react-hooks-testing-library";
+import useTask, { KeepValue } from "../index";
 
 afterEach(cleanup);
 
+afterEach(function() {
+  jest.restoreAllMocks();
+});
+
 test("it prevents changing concurrency strategies", () => {
-  jest.spyOn(console, "error").mockImplementation();
+  jest.spyOn(console, "warn").mockImplementation();
+  const work = jest.fn();
 
-  const { container } = render(<PerformWork work={SyncWork} />);
+  const { rerender } = renderHook(({ keep }) => useTask(work, { keep }), {
+    initialProps: {
+      keep: "first" as KeepValue
+    }
+  });
 
-  expect(() => {
-    render(<PerformWork work={SyncWork} taskConfig={{ keep: "first" }} />, {
-      container
-    });
-  }).toThrow(/Cannot dynamically change how to handle concurrent tasks/);
+  rerender({ keep: "last" });
+
+  expect(console.warn).toBeCalledTimes(1);
 });

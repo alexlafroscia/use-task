@@ -1,34 +1,46 @@
-import React from "react";
-import { act } from "react-dom/test-utils";
-import { cleanup, fireEvent, render } from "react-testing-library";
-import "jest-dom/extend-expect";
-
-import { CancellableAsyncWork, PerformWork } from "../../helpers";
-import { waitForTaskCompletion } from "../../test-helpers";
+import { renderHook, cleanup, act } from "react-hooks-testing-library";
+import useTask, { timeout } from "../../index";
 
 afterEach(cleanup);
+
+function perform(result) {
+  return result.current[0]();
+}
+
+function stateFor(result) {
+  return result.current[1];
+}
 
 test("it prevents simultaneous async work", async () => {
   const done = jest.fn();
 
-  const { getByText, getByTestId } = render(
-    <PerformWork
-      work={CancellableAsyncWork}
-      taskConfig={{ keep: "last" }}
-      done={done}
-    />
+  const { result, waitForNextUpdate } = renderHook(() =>
+    useTask(
+      function*() {
+        yield timeout(0);
+
+        done();
+      },
+      { keep: "last" }
+    )
   );
 
+  let first;
+  let second;
+
   act(() => {
-    fireEvent.click(getByText("Perform Work"));
+    first = perform(result);
   });
 
   act(() => {
-    fireEvent.click(getByText("Perform Work"));
+    second = perform(result);
   });
 
-  await waitForTaskCompletion();
+  await waitForNextUpdate();
+
+  expect(first.isCancelled).toBe(true);
+  expect(second.isCancelled).not.toBe(true);
 
   expect(done).toBeCalledTimes(1);
-  expect(getByTestId("perform-count")).toHaveTextContent("2");
+  expect(stateFor(result).performCount).toBe(2);
 });
