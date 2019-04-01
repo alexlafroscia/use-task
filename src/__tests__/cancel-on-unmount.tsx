@@ -1,11 +1,13 @@
-import React from "react";
-import { act } from "react-dom/test-utils";
-import { cleanup, fireEvent, render } from "react-testing-library";
-import "jest-dom/extend-expect";
+import { renderHook, cleanup, act } from "react-hooks-testing-library";
+import useTask, { timeout } from "..";
 
-import { CancellableAsyncWork, PerformWork } from "../helpers";
-import useTask, { timeout } from "../index";
-import { waitForTaskCompletion } from "../test-helpers";
+function perform(result) {
+  return result.current[0]();
+}
+
+function stateFor(result) {
+  return result.current[1];
+}
 
 beforeEach(function() {
   jest.spyOn(console, "error");
@@ -18,51 +20,40 @@ afterEach(function() {
 afterEach(cleanup);
 
 test("it cancels the task when the component is unmounted", async () => {
-  const { getByText, container } = render(
-    <PerformWork work={CancellableAsyncWork} />
+  const { result, unmount } = renderHook(() =>
+    useTask(function*() {
+      yield timeout(0);
+    })
   );
 
+  let lastInstance;
+
   act(() => {
-    fireEvent.click(getByText("Perform Work"));
+    lastInstance = perform(result);
   });
 
-  render(<p>No more component!</p>, { container });
+  unmount();
 
-  await waitForTaskCompletion();
-
+  expect(lastInstance.isCancelled).toBe(true);
   expect(console.error).toBeCalledTimes(0); // eslint-disable-line no-console
 });
 
 test("does not cancel when props change", async () => {
-  function PerformWorkWithChange({ name = "World" }) {
-    const [performWork, taskState] = useTask(function*() {
-      yield timeout();
-
+  const { result, rerender, waitForNextUpdate } = renderHook(() =>
+    useTask(function*() {
+      yield timeout(0);
       return "Done!";
-    });
-
-    return (
-      <>
-        <button data-testid="perform" onClick={() => performWork()} />
-        <p data-testid="prop">Hello, {name}</p>
-        <div data-testid="result">
-          {taskState.lastSuccessful && taskState.lastSuccessful.result}
-        </div>
-      </>
-    );
-  }
-
-  const { getByTestId, container } = render(<PerformWorkWithChange />);
+    })
+  );
 
   act(() => {
-    fireEvent.click(getByTestId("perform"));
+    perform(result);
   });
 
-  render(<PerformWorkWithChange name="Alex" />, { container });
+  rerender();
 
-  await waitForTaskCompletion();
+  await waitForNextUpdate();
 
-  expect(getByTestId("prop")).toHaveTextContent("Hello, Alex");
-  expect(getByTestId("result")).toHaveTextContent("Done!");
+  expect(stateFor(result).lastSuccessful.result).toBe("Done!");
   expect(console.error).toBeCalledTimes(0);
 });

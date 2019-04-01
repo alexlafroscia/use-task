@@ -1,45 +1,53 @@
-import React from "react";
-import { act } from "react-dom/test-utils";
-import { cleanup, fireEvent, render, wait } from "react-testing-library";
-import "jest-dom/extend-expect";
-
-import { AsyncWork, PerformWork } from "../../helpers";
-import { waitForTaskCompletion } from "../../test-helpers";
-import useTask from "../../index";
+import { renderHook, cleanup, act } from "react-hooks-testing-library";
+import useTask, { timeout } from "../../index";
 import Deferred from "../../deferred";
 
 afterEach(cleanup);
 
+function perform(result) {
+  return result.current[0]();
+}
+
+function stateFor(result) {
+  return result.current[1];
+}
+
 test("it allows multiple tasks to run at a time", async () => {
   const done = jest.fn();
 
-  const { getByText, getByTestId } = render(
-    <PerformWork work={AsyncWork} taskConfig={{ keep: "all" }} done={done} />
+  let first, second;
+
+  const { result } = renderHook(() =>
+    useTask(
+      function*() {
+        yield timeout(0);
+        done();
+      },
+      { keep: "all" }
+    )
   );
 
   act(() => {
-    fireEvent.click(getByText("Perform Work"));
+    first = perform(result);
   });
 
   act(() => {
-    fireEvent.click(getByText("Perform Work"));
+    second = perform(result);
   });
 
-  await waitForTaskCompletion();
+  await Promise.all([first, second]);
 
   expect(done).toBeCalledTimes(2);
-  expect(getByTestId("perform-count")).toHaveTextContent("2");
+  expect(stateFor(result).performCount).toBe(2);
 });
 
 test("does not cancel existing runs when one completes", async () => {
-  jest.spyOn(console, "error");
-
   const def1 = new Deferred();
   const def2 = new Deferred();
   let first = true;
 
-  function PerformWorkTwice() {
-    const [performWork, taskState] = useTask(
+  const { result, waitForNextUpdate } = renderHook(() =>
+    useTask(
       function*() {
         let value;
 
@@ -52,38 +60,27 @@ test("does not cancel existing runs when one completes", async () => {
         return value;
       },
       { keep: "all" }
-    );
-
-    return (
-      <>
-        <button data-testid="perform" onClick={() => performWork()} />
-        <div data-testid="last-result">
-          {taskState.lastSuccessful && taskState.lastSuccessful.result}
-        </div>
-      </>
-    );
-  }
-
-  const { getByTestId } = render(<PerformWorkTwice />);
+    )
+  );
 
   act(() => {
-    fireEvent.click(getByTestId("perform"));
+    perform(result);
   });
 
-  await wait();
+  await timeout(0);
   first = false;
 
   act(() => {
-    fireEvent.click(getByTestId("perform"));
+    perform(result);
   });
 
   def2.resolve("second");
-  await wait();
+  await waitForNextUpdate();
 
-  expect(getByTestId("last-result")).toHaveTextContent("second");
+  expect(stateFor(result).lastSuccessful.result).toBe("second");
 
   def1.resolve("first");
-  await wait();
+  await waitForNextUpdate();
 
-  expect(getByTestId("last-result")).toHaveTextContent("first");
+  expect(stateFor(result).lastSuccessful.result).toBe("first");
 });

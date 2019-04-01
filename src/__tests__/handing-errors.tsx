@@ -1,49 +1,39 @@
 /* eslint-disable require-yield */
 
-import React, { useEffect } from "react";
-import { act } from "react-dom/test-utils";
-import { cleanup, fireEvent, render } from "react-testing-library";
-import "jest-dom/extend-expect";
-
-import useTask from "../index";
-import { waitForTaskCompletion } from "../test-helpers";
+import { renderHook, cleanup, act } from "react-hooks-testing-library";
+import useTask, { timeout } from "../index";
+import Deferred from "../deferred";
 
 afterEach(cleanup);
+
+function perform(result) {
+  return result.current[0]();
+}
+
+function stateFor(result) {
+  return result.current[1];
+}
 
 test("it can handle an error thrown immediately in a task", async () => {
   const error = new Error("Something went wrong");
   const handleError = jest.fn();
 
+  const def = new Deferred<undefined>();
   let taskInstance;
 
-  function ErrorInWork() {
-    const [doIt] = useTask(function*() {
+  const { result } = renderHook(() =>
+    useTask(function*() {
+      def.resolve(undefined);
       throw error;
-    });
-
-    return (
-      <button
-        onClick={async () => {
-          try {
-            taskInstance = doIt();
-            await taskInstance;
-          } catch (e) {
-            handleError(e);
-          }
-        }}
-      >
-        Perform Work
-      </button>
-    );
-  }
-
-  const { getByText } = render(<ErrorInWork />);
+    })
+  );
 
   act(() => {
-    fireEvent.click(getByText("Perform Work"));
+    taskInstance = perform(result);
+    taskInstance.catch(handleError);
   });
 
-  await waitForTaskCompletion();
+  await def;
 
   // Check task state
   expect(taskInstance.isComplete).toBe(true);
@@ -57,40 +47,27 @@ test("it can handle an error thrown immediately in a task", async () => {
   expect(handleError).toBeCalledWith(error);
 });
 
-test("it can handle a promise rejection in a test", async () => {
+test("it can handle an error thrown later in a task", async () => {
   const error = new Error("Something went wrong");
   const handleError = jest.fn();
 
+  const def = new Deferred<undefined>();
   let taskInstance;
 
-  function ErrorInWork() {
-    const [doIt] = useTask(function*() {
-      yield Promise.reject(error);
-    });
-
-    return (
-      <button
-        onClick={async () => {
-          try {
-            taskInstance = doIt();
-            await taskInstance;
-          } catch (e) {
-            handleError(e);
-          }
-        }}
-      >
-        Perform Work
-      </button>
-    );
-  }
-
-  const { getByText } = render(<ErrorInWork />);
+  const { result } = renderHook(() =>
+    useTask(function*() {
+      yield timeout(0);
+      def.resolve(undefined);
+      throw error;
+    })
+  );
 
   act(() => {
-    fireEvent.click(getByText("Perform Work"));
+    taskInstance = perform(result);
+    taskInstance.catch(handleError);
   });
 
-  await waitForTaskCompletion();
+  await def;
 
   // Check task state
   expect(taskInstance.isComplete).toBe(true);
@@ -106,27 +83,23 @@ test("it can handle a promise rejection in a test", async () => {
 
 test("it does not report an errored task as the last successful task", async () => {
   const error = new Error("Something went wrong");
-  let state;
 
-  function ErrorInWork() {
-    const [doIt, taskState] = useTask(function*() {
-      yield Promise.reject(error);
-    });
+  const def = new Deferred<undefined>();
+  let instance;
 
-    useEffect(function() {
-      state = taskState;
-    });
-
-    return <button onClick={() => doIt()}>Perform Work</button>;
-  }
-
-  const { getByText } = render(<ErrorInWork />);
+  const { result } = renderHook(() =>
+    useTask(function*() {
+      def.resolve(undefined);
+      throw error;
+    })
+  );
 
   act(() => {
-    fireEvent.click(getByText("Perform Work"));
+    instance = perform(result);
   });
 
-  await waitForTaskCompletion();
+  await def;
 
-  expect(state.lastSuccessful).toBe(undefined);
+  expect(instance.error).not.toBeUndefined();
+  expect(stateFor(result).lastSucessful).toBe(undefined);
 });

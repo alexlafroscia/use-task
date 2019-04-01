@@ -1,60 +1,48 @@
-import React, { useRef } from "react";
-import { act } from "react-dom/test-utils";
-import { cleanup, fireEvent, render } from "react-testing-library";
-import "jest-dom/extend-expect";
-
-import useTask, { timeout, ignoreCancellation } from "../index";
-import { waitForTaskCompletion } from "../test-helpers";
+import { renderHook, cleanup, act } from "react-hooks-testing-library";
+import useTask, { timeout } from "../index";
+import Deferred from "../deferred";
 
 afterEach(cleanup);
 
-test("cancelling an outer task cancels an inner task", async () => {
-  const done = jest.fn();
+function perform(result) {
+  return result.current[0]();
+}
 
-  function PerformWork() {
+test("cancelling an outer task cancels an inner task", async () => {
+  const beforeCancel = jest.fn();
+  const afterCancel = jest.fn();
+
+  const def = new Deferred<undefined>();
+
+  const { result } = renderHook(() => {
     const [innerWork] = useTask(function*() {
+      beforeCancel();
+
+      yield def.resolve(undefined);
       yield timeout(0);
 
-      done();
+      afterCancel();
     });
-    const [outerWork] = useTask(function*() {
+
+    return useTask(function*() {
       yield innerWork();
     });
-
-    const taskInstance = useRef<any>();
-
-    return (
-      <>
-        <button
-          onClick={ignoreCancellation(async () => {
-            taskInstance.current = outerWork();
-            await taskInstance.current;
-          })}
-        >
-          Perform
-        </button>
-        <button
-          onClick={() => {
-            taskInstance.current.cancel();
-          }}
-        >
-          Cancel
-        </button>
-      </>
-    );
-  }
-
-  const { getByText } = render(<PerformWork />);
-
-  act(() => {
-    fireEvent.click(getByText("Perform"));
   });
 
+  let outerInstance;
+
   act(() => {
-    fireEvent.click(getByText("Cancel"));
+    outerInstance = perform(result);
   });
 
-  await waitForTaskCompletion();
+  await def;
 
-  expect(done).toBeCalledTimes(0);
+  act(() => {
+    outerInstance.cancel();
+  });
+
+  expect(beforeCancel).toBeCalled();
+  expect(afterCancel).not.toBeCalled();
+
+  expect(outerInstance.isCancelled).toBe(true);
 });
