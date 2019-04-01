@@ -70,6 +70,7 @@ test("does not cancel existing runs when one completes", async () => {
     fireEvent.click(getByTestId("perform"));
   });
 
+  await wait();
   first = false;
 
   act(() => {

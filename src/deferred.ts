@@ -1,4 +1,6 @@
 export default class Deferred<T> implements Promise<T> {
+  protected subscribed = false;
+
   private promise: Promise<T>;
   private _resolve!: (result: T) => void;
   private _reject!: (reason: any) => void;
@@ -30,6 +32,8 @@ export default class Deferred<T> implements Promise<T> {
       | undefined
       | null
   ): Promise<TResult1 | TResult2> {
+    this.subscribed = true;
+
     return this.promise.then(onfulfilled, onrejected);
   }
 
@@ -39,10 +43,14 @@ export default class Deferred<T> implements Promise<T> {
       | undefined
       | null
   ) {
+    this.subscribed = true;
+
     return this.promise.catch(onrejected);
   }
 
   finally(onfinally?: (() => void) | undefined | null) {
+    this.subscribed = true;
+
     return this.promise.finally(onfinally);
   }
 }

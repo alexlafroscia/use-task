@@ -1,5 +1,6 @@
 import Deferred from "./deferred";
 import CancellationError, { isCancellationError } from "./cancellation-error";
+import timeout from "./timeout";
 
 export type AnyFunction = (...args: any[]) => any;
 type Generator = (...args: any[]) => IterableIterator<any>;
@@ -15,6 +16,8 @@ export async function perform<F extends AnyFunction>(
   args: Parameters<F>
 ) {
   task.begin();
+
+  await timeout(0);
 
   let result = task.fn(...args);
 
@@ -125,7 +128,9 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
     this.isComplete = true;
     this.result = result;
 
-    super.resolve(result);
+    if (this.subscribed) {
+      super.resolve(result);
+    }
   }
 
   reject(reason: any) {
@@ -133,7 +138,9 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
     this.isComplete = true;
     this.error = reason;
 
-    super.reject(reason);
+    if (this.subscribed) {
+      super.reject(reason);
+    }
   }
 
   cancel(error = new CancellationError("Task Cancelled")) {
