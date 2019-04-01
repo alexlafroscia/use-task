@@ -117,19 +117,7 @@ test("it does not report an errored task as the last successful task", async () 
       state = taskState;
     });
 
-    return (
-      <button
-        onClick={async () => {
-          try {
-            await doIt();
-          } catch (e) {
-            // Swallow error
-          }
-        }}
-      >
-        Perform Work
-      </button>
-    );
+    return <button onClick={() => doIt()}>Perform Work</button>;
   }
 
   const { getByText } = render(<ErrorInWork />);
