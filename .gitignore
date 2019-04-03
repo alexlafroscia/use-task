@@ -3,3 +3,7 @@ node_modules/
 
 # Build output
 pkg/
+
+# Next Output (Documentation Site)
+.next/
+out/

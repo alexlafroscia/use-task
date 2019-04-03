@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "build": "pack build",
+    "docs": "next build && next export",
     "lint": "eslint . --ext js --ext jsx --ext ts --ext tsx",
     "release": "pack publish",
     "test": "jest"
@@ -36,6 +37,7 @@
     "eslint-plugin-react-hooks": "^1.5.0",
     "jest": "^24.5.0",
     "jest-watch-typeahead": "^0.2.1",
+    "next": "^8.0.4",
     "prettier": "^1.16.4",
     "react-app-polyfill": "^0.2.2",
     "react-dom": "16.8.6",
