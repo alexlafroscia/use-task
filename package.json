@@ -1,7 +1,7 @@
 {
   "name": "use-task",
   "version": "1.0.0",
-  "private": "true",
+  "private": true,
   "description": "A React hook for running and cancelling asynchronous tasks",
   "workspaces": [
     ".",
