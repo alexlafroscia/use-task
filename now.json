@@ -2,5 +2,8 @@
   "version": 2,
   "name": "use-task",
   "alias": "use-task.dev",
-  "builds": [{ "src": "next.config.js", "use": "@now/next" }]
+  "builds": [
+    { "src": "packages/docs-site/next.config.js", "use": "@now/next" }
+  ],
+  "routes": [{ "src": "/(.*)", "dest": "/packages/docs-site/$1" }]
 }

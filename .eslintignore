@@ -1,2 +1,6 @@
 # Build Output
-pkg/
+packages/use-task/pkg/
+
+# Site Output
+packages/docs-site/.next/
+packages/docs-site/out/
