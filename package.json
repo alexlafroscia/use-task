@@ -13,7 +13,8 @@
     "docs": "next build && next export",
     "lint": "eslint . --ext js --ext jsx --ext ts --ext tsx",
     "release": "pack publish",
-    "test": "jest"
+    "test": "jest",
+    "now-build": "next build"
   },
   "dependencies": {
     "@rooks/use-will-unmount": "^1.1.0",

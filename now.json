@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "name": "use-task",
+  "alias": "use-task.dev",
+  "builds": [{ "src": "next.config.js", "use": "@now/next" }]
+}
