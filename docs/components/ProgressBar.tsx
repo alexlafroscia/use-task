@@ -24,6 +24,7 @@ type InnerProps = {
 const ProgressBarInner = styled.div`
   background: ${(props: InnerProps) => props.color};
   height: 100%;
+  transition: width 100ms;
   width: ${(props: InnerProps) => props.completionPercentage}%;
 `;
 
