@@ -22,3 +22,13 @@ action "Run Linting" {
   needs = ["Install Dependencies"]
   args = "lint -f tap"
 }
+
+workflow "Clean Up Merged Branch" {
+  on = "pull_request"
+  resolves = ["Delete Merged Branch"]
+}
+
+action "Delete Merged Branch" {
+  uses = "jessfraz/branch-cleanup-action@master"
+  secrets = ["GITHUB_TOKEN"]
+}
