@@ -7,6 +7,10 @@
     ".",
     "docs"
   ],
+  "source": "pkg/dist-src/index.js",
+  "types": "pkg/dist-types/index.d.ts",
+  "main": "pkg/dist-node/index.js",
+  "module": "pkg/dist-web/index.js",
   "license": "MIT",
   "keywords": [
     "hooks",
