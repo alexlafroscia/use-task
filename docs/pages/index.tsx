@@ -1,12 +1,24 @@
 import React from "react";
+import styled from "@emotion/styled";
 
-import Button from "../components/Button";
+import BaseDemo from "../components/ConcurrencyDemo";
 
-const IndexPgae = () => (
-  <>
-    <h1>Use Task</h1>
-    <Button timeout={500}>Say Hello (After 1 Second)</Button>
-  </>
-);
+const Demo = styled(BaseDemo)`
+  & + * {
+    margin-top: 10px;
+  }
+`;
 
-export default IndexPgae;
+const IndexPage = () => {
+  return (
+    <>
+      <h1>Use Task</h1>
+
+      <Demo title="Keep All" keep="all" />
+      <Demo title="Keep Last" keep="last" />
+      <Demo title="Keep First" keep="first" />
+    </>
+  );
+};
+
+export default IndexPage;
