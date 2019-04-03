@@ -1,5 +1,10 @@
 import React from "react";
+import styled from "@emotion/styled";
 import useTask, { timeout as wait } from "use-task";
+
+const BlueButton = styled.button`
+  color: blue;
+`;
 
 export default function Button({ children, timeout = 1000, ...rest }) {
   const [perform] = useTask(function*() {
@@ -9,8 +14,8 @@ export default function Button({ children, timeout = 1000, ...rest }) {
   });
 
   return (
-    <button onClick={() => perform()} {...rest}>
+    <BlueButton onClick={() => perform()} {...rest}>
       {children}
-    </button>
+    </BlueButton>
   );
 }
