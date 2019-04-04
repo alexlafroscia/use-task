@@ -1,5 +1,6 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
-import useTask, { timeout } from "../../index";
+import useTask from "../../index";
+import Deferred from "../../deferred";
 
 afterEach(cleanup);
 
@@ -12,14 +13,12 @@ function stateFor(result) {
 }
 
 test("it prevents simultaneous async work", async () => {
-  const done = jest.fn();
+  const def = new Deferred<undefined>();
 
-  const { result, waitForNextUpdate } = renderHook(() =>
+  const { result } = renderHook(() =>
     useTask(
       function*() {
-        yield timeout(0);
-
-        done();
+        yield def;
       },
       { keep: "last" }
     )
@@ -36,11 +35,8 @@ test("it prevents simultaneous async work", async () => {
     second = perform(result);
   });
 
-  await waitForNextUpdate();
-
   expect(first.isCancelled).toBe(true);
   expect(second.isCancelled).not.toBe(true);
 
-  expect(done).toBeCalledTimes(1);
   expect(stateFor(result).performCount).toBe(2);
 });

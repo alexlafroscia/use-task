@@ -51,16 +51,21 @@ export default function useTask<T extends AnyFunction>(
     [taskState.instances, taskState.lastSuccessful]
   );
 
-  // Use a `ref` so that we cancel on the latest state, not the initial state
   const stateRef = useRef<InternalTaskState<T>>(taskState);
+  const isMountedRef = useRef(true);
   stateRef.current = taskState;
   useWillUnmount(() => {
+    isMountedRef.current = false;
     cancelAllInstances(stateRef.current.instances);
   });
 
   const runCallback = useCallback(
     (...args) => {
-      const instance = new TaskInstance(taskDefinition);
+      const instance = new TaskInstance(taskDefinition, () => {
+        if (isMountedRef.current) {
+          setTaskState(state => ({ ...state }));
+        }
+      });
 
       setTaskState(state => ({
         ...state,

@@ -14,7 +14,7 @@ beforeEach(function() {
 });
 
 afterEach(function() {
-  jest.restoreAllMocks();
+  jest.clearAllMocks();
 });
 
 afterEach(cleanup);

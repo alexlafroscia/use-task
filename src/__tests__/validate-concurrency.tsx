@@ -5,7 +5,7 @@ import useTask, { KeepValue } from "../index";
 afterEach(cleanup);
 
 afterEach(function() {
-  jest.restoreAllMocks();
+  jest.clearAllMocks();
 });
 
 test("it prevents changing concurrency strategies", () => {

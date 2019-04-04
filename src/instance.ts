@@ -24,13 +24,15 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
 
   [Symbol.toStringTag] = "TaskInstance";
 
+  private notifyStateChange: () => void;
   private parentInstance?: TaskInstance<any>;
   private onCancelCallbacks: Array<AnyFunction> = [];
 
-  constructor(fn: Func) {
+  constructor(fn: Func, updateTaskState) {
     super();
 
     this.fn = fn;
+    this.notifyStateChange = updateTaskState;
   }
 
   /**
@@ -64,13 +66,15 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
   }
 
   begin() {
-    this.isRunning = true;
+    this.updatePublicState({ isRunning: true });
   }
 
   resolve(result: R) {
-    this.isRunning = false;
-    this.isComplete = true;
-    this.result = result;
+    this.updatePublicState({
+      isRunning: false,
+      isComplete: true,
+      result
+    });
 
     if (this.subscribed) {
       super.resolve(result);
@@ -78,9 +82,11 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
   }
 
   reject(reason: any) {
-    this.isRunning = false;
-    this.isComplete = true;
-    this.error = reason;
+    this.updatePublicState({
+      isRunning: false,
+      isComplete: true,
+      error: reason
+    });
 
     if (this.subscribed) {
       super.reject(reason);
@@ -98,6 +104,12 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
     for (const callback of this.onCancelCallbacks) {
       callback(error);
     }
+  }
+
+  private updatePublicState(props) {
+    Object.assign(this, props);
+
+    this.notifyStateChange();
   }
 }
 
