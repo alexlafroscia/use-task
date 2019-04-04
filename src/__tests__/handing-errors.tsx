@@ -2,7 +2,7 @@
 
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
 import useTask, { timeout } from "../index";
-import Deferred from "../deferred";
+import { TestDeferred as Deferred } from "../deferred";
 
 afterEach(cleanup);
 

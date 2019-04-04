@@ -14,11 +14,11 @@ export default class Deferred<T> implements Promise<T> {
     });
   }
 
-  resolve(result: T) {
+  protected resolve(result: T) {
     this._resolve(result);
   }
 
-  reject(reason: any) {
+  protected reject(reason: any) {
     this._reject(reason);
   }
 
@@ -52,5 +52,15 @@ export default class Deferred<T> implements Promise<T> {
     this.subscribed = true;
 
     return this.promise.finally(onfinally);
+  }
+}
+
+export class TestDeferred<T> extends Deferred<T> {
+  resolve(result: T) {
+    super.resolve(result);
+  }
+
+  reject(reason: any) {
+    super.reject(reason);
   }
 }
