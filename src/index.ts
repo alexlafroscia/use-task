@@ -15,6 +15,7 @@ type TaskState<F extends AnyFunction> = {
   isRunning: boolean;
   performCount: number;
   lastSuccessful?: TaskInstance<F>;
+  cancelAll: () => void;
 };
 
 type Tuple<A, B> = [A, B];
@@ -46,7 +47,10 @@ export default function useTask<T extends AnyFunction>(
     () => ({
       isRunning: taskState.instances.some(t => t.isRunning),
       performCount: taskState.instances.length,
-      lastSuccessful: taskState.lastSuccessful
+      lastSuccessful: taskState.lastSuccessful,
+      cancelAll() {
+        cancelAllInstances(taskState.instances);
+      }
     }),
     [taskState.instances, taskState.lastSuccessful]
   );

@@ -21,7 +21,7 @@ const ProgressBar = styled(BaseProgressBar)`
 const ConcurrencyDemo = ({ title, keep, ...rest }) => {
   const [progressBars, setProgressBars] = useState([]);
 
-  const [fillProgressBar] = useTask(
+  const [fillProgressBar, fillProgressBarTask] = useTask(
     function*(setProgress) {
       let ticks = 0;
 
@@ -59,6 +59,7 @@ const ConcurrencyDemo = ({ title, keep, ...rest }) => {
 
       <button
         onClick={() => {
+          fillProgressBarTask.cancelAll();
           setProgressBars([]);
         }}
       >
