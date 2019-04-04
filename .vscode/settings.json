@@ -1,0 +1,8 @@
+{
+  "files.exclude": {
+    "docs/.next/**": true
+  },
+  "search.exclude": {
+    "pkg": true
+  }
+}
