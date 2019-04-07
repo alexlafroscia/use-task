@@ -32,14 +32,14 @@ test("allows cancelling all task instances", async () => {
     second = perform(result);
   });
 
-  expect(first.isCancelled).toBe(false);
-  expect(second.isCancelled).toBe(false);
+  expect(first.current.isCancelled).toBe(false);
+  expect(second.current.isCancelled).toBe(false);
 
   stateFor(result).cancelAll();
   await waitForNextUpdate();
 
-  expect(first.isCancelled).toBe(true);
-  expect(second.isCancelled).toBe(true);
+  expect(first.current.isCancelled).toBe(true);
+  expect(second.current.isCancelled).toBe(true);
 });
 
 test("exposing whether any instance is running", async () => {
