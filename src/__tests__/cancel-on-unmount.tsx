@@ -34,7 +34,7 @@ test("it cancels the task when the component is unmounted", async () => {
 
   unmount();
 
-  expect(lastInstance.isCancelled).toBe(true);
+  expect(lastInstance.current.isCancelled).toBe(true);
   expect(console.error).toBeCalledTimes(0); // eslint-disable-line no-console
 });
 

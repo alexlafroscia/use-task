@@ -44,5 +44,5 @@ test("cancelling an outer task cancels an inner task", async () => {
   expect(beforeCancel).toBeCalled();
   expect(afterCancel).not.toBeCalled();
 
-  expect(outerInstance.isCancelled).toBe(true);
+  expect(outerInstance.current.isCancelled).toBe(true);
 });

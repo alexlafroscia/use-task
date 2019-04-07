@@ -70,7 +70,7 @@ const ConcurrencyDemo = ({ title, keep, ...rest }) => {
         <Task key={index}>
           <ProgressBar color="red" completion={progressBar.completion} />
           <TextButton
-            disabled={!progressBar.task.isRunning}
+            disabled={!progressBar.task.current.isRunning}
             onClick={() => {
               progressBar.task.cancel();
             }}

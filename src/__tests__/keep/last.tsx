@@ -35,8 +35,8 @@ test("it prevents simultaneous async work", async () => {
     second = perform(result);
   });
 
-  expect(first.isCancelled).toBe(true);
-  expect(second.isCancelled).not.toBe(true);
+  expect(first.current.isCancelled).toBe(true);
+  expect(second.current.isCancelled).toBe(false);
 
   expect(stateFor(result).performCount).toBe(2);
 });

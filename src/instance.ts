@@ -1,28 +1,37 @@
+import React from "react";
+
 import Deferred from "./deferred";
 import CancellationError, { isCancellationError } from "./cancellation-error";
 
 export type AnyFunction = (...args: any[]) => any;
 type Generator = (...args: any[]) => IterableIterator<any>;
 
-type Result<T extends AnyFunction> = T extends Generator
+export type Result<T extends AnyFunction> = T extends Generator
   ? ReturnType<T> extends IterableIterator<infer U>
     ? U
     : never
   : ReturnType<T>;
 
-class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
-  R
-> {
+export interface TaskInstanceState<T> {
+  isRunning: boolean;
+  isComplete: boolean;
+  isCancelled: boolean;
+  result?: T;
+  error?: any;
+}
+
+class TaskInstance<Func extends AnyFunction, R = Result<Func>>
+  extends Deferred<R>
+  implements React.RefObject<TaskInstanceState<R>> {
   fn: Func;
 
-  result?: R;
-  error?: Error;
-
-  isCancelled = false;
-  isRunning = false;
-  isComplete = false;
-
   [Symbol.toStringTag] = "TaskInstance";
+
+  current: TaskInstanceState<R> = {
+    isCancelled: false,
+    isRunning: false,
+    isComplete: false
+  };
 
   private notifyStateChange: () => void;
   private parentInstance?: TaskInstance<any>;
@@ -94,11 +103,11 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
   }
 
   cancel(error = new CancellationError("Task Cancelled")) {
-    if (this.isCancelled) {
+    if (this.current.isCancelled) {
       return;
     }
 
-    this.isCancelled = true;
+    this.current.isCancelled = true;
     this.reject(error);
 
     for (const callback of this.onCancelCallbacks) {
@@ -107,7 +116,7 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>> extends Deferred<
   }
 
   private updatePublicState(props) {
-    Object.assign(this, props);
+    Object.assign(this.current, props);
 
     this.notifyStateChange();
   }

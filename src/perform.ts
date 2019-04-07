@@ -19,7 +19,7 @@ export default async function perform<F extends AnyFunction>(
     while (!isFinished) {
       // Is the task has been cancelled, we can stop consuming from the
       // generator
-      if (task.isCancelled) {
+      if (task.current.isCancelled) {
         break;
       }
 

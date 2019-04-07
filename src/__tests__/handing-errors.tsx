@@ -36,12 +36,12 @@ test("it can handle an error thrown immediately in a task", async () => {
   await def;
 
   // Check task state
-  expect(taskInstance.isComplete).toBe(true);
-  expect(taskInstance.isRunning).toBe(false);
-  expect(taskInstance.isCancelled).toBe(false);
+  expect(taskInstance.current.isComplete).toBe(true);
+  expect(taskInstance.current.isRunning).toBe(false);
+  expect(taskInstance.current.isCancelled).toBe(false);
 
   // Check access to error object
-  expect(taskInstance.error).toBe(error);
+  expect(taskInstance.current.error).toBe(error);
 
   // Check `perform` surfacing the error
   expect(handleError).toBeCalledWith(error);
@@ -70,12 +70,12 @@ test("it can handle an error thrown later in a task", async () => {
   await def;
 
   // Check task state
-  expect(taskInstance.isComplete).toBe(true);
-  expect(taskInstance.isRunning).toBe(false);
-  expect(taskInstance.isCancelled).toBe(false);
+  expect(taskInstance.current.isComplete).toBe(true);
+  expect(taskInstance.current.isRunning).toBe(false);
+  expect(taskInstance.current.isCancelled).toBe(false);
 
   // Check access to error object
-  expect(taskInstance.error).toBe(error);
+  expect(taskInstance.current.error).toBe(error);
 
   // Check `perform` surfacing the error
   expect(handleError).toBeCalledWith(error);
@@ -100,6 +100,6 @@ test("it does not report an errored task as the last successful task", async () 
 
   await def;
 
-  expect(instance.error).not.toBeUndefined();
+  expect(instance.current.error).not.toBeUndefined();
   expect(stateFor(result).lastSucessful).toBe(undefined);
 });

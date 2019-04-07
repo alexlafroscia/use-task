@@ -36,8 +36,8 @@ test("it prevents simultaneous async work", async () => {
 
   await waitForNextUpdate();
 
-  expect(first.isCancelled).not.toBe(true);
-  expect(second.isCancelled).toBe(true);
+  expect(first.current.isCancelled).toBe(false);
+  expect(second.current.isCancelled).toBe(true);
 
   expect(done).toBeCalledTimes(1);
   expect(stateFor(result).performCount).toBe(2);
