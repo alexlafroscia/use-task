@@ -28,8 +28,8 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>>
   [Symbol.toStringTag] = "TaskInstance";
 
   current: TaskInstanceState<R> = {
+    isRunning: true,
     isCancelled: false,
-    isRunning: false,
     isComplete: false
   };
 
@@ -72,10 +72,6 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>>
         throw e;
       }
     });
-  }
-
-  begin() {
-    this.updatePublicState({ isRunning: true });
   }
 
   resolve(result: R) {

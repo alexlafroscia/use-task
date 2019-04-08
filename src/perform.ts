@@ -5,8 +5,6 @@ export default async function perform<F extends AnyFunction>(
   task: TaskInstance<F>,
   args: Parameters<F>
 ) {
-  task.begin();
-
   await timeout(0);
 
   let result = task.fn(...args);
