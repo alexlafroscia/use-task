@@ -15,7 +15,7 @@ function stateFor(result) {
 test("allows cancelling all task instances", async () => {
   let first, second;
 
-  const { result, waitForNextUpdate } = renderHook(() =>
+  const { result } = renderHook(() =>
     useTask(
       function*() {
         yield timeout(0);
@@ -36,7 +36,6 @@ test("allows cancelling all task instances", async () => {
   expect(second.current.isCancelled).toBe(false);
 
   stateFor(result).cancelAll();
-  await waitForNextUpdate();
 
   expect(first.current.isCancelled).toBe(true);
   expect(second.current.isCancelled).toBe(true);

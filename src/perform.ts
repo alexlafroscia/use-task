@@ -5,8 +5,8 @@ export default async function perform<F extends AnyFunction>(
   task: TaskInstance<F>,
   args: Parameters<F>
 ) {
-  task.begin();
-
+  // Required to allow a user to catch an error even if it is
+  // thrown synchronously within the task
   await timeout(0);
 
   let result = task.fn(...args);
@@ -20,7 +20,7 @@ export default async function perform<F extends AnyFunction>(
       // Is the task has been cancelled, we can stop consuming from the
       // generator
       if (task.current.isCancelled) {
-        break;
+        return;
       }
 
       // Advance the generator with the last resolved value, so that

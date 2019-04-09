@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useRef } from "react";
+import { useMemo, useCallback, useReducer, useRef } from "react";
 import useWillUnmount from "@rooks/use-will-unmount";
 import TaskInstance, {
   TaskInstanceState,
@@ -6,14 +6,9 @@ import TaskInstance, {
   AnyFunction
 } from "./instance";
 import perform from "./perform";
+import reducer, { InternalTaskState, TaskStateReducer } from "./state";
 
 export type KeepValue = "first" | "last" | "all";
-
-type InternalTaskState<F extends AnyFunction> = {
-  keep: KeepValue;
-  instances: TaskInstance<F>[];
-  lastSuccessful?: TaskInstance<F>;
-};
 
 type TaskState<F extends AnyFunction> = {
   isRunning: boolean;
@@ -36,7 +31,7 @@ export default function useTask<T extends AnyFunction>(
   taskDefinition: T,
   { keep = "last" }: UseTaskConfig = { keep: "last" }
 ): Tuple<(...args: Parameters<T>) => TaskInstance<T>, TaskState<T>> {
-  const [taskState, setTaskState] = useState<InternalTaskState<T>>({
+  const [taskState, dispatch] = useReducer<TaskStateReducer<T>>(reducer, {
     keep,
     instances: [],
     lastSuccessful: undefined
@@ -70,16 +65,11 @@ export default function useTask<T extends AnyFunction>(
 
   const runCallback = useCallback(
     (...args) => {
-      const instance = new TaskInstance(taskDefinition, () => {
+      const instance = new TaskInstance(taskDefinition, action => {
         if (isMountedRef.current) {
-          setTaskState(state => ({ ...state }));
+          dispatch(action);
         }
       });
-
-      setTaskState(state => ({
-        ...state,
-        instances: [...state.instances, instance]
-      }));
 
       if (keep === "first" && derivedState.isRunning) {
         instance.cancel();
@@ -90,13 +80,7 @@ export default function useTask<T extends AnyFunction>(
         cancelAllInstances(taskState.instances);
       }
 
-      const promiseToResult = perform(instance, args as Parameters<T>);
-
-      promiseToResult.then(() => {
-        if (!instance.current.isCancelled && !instance.current.error) {
-          setTaskState(state => ({ ...state, lastSuccessful: instance }));
-        }
-      });
+      perform(instance, args as Parameters<T>);
 
       return instance;
     },

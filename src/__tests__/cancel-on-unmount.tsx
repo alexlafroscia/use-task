@@ -1,5 +1,7 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
 import useTask, { timeout } from "..";
+import CancellationError from "../cancellation-error";
+import { TestDeferred } from "../deferred";
 
 function perform(result) {
   return result.current[0]();
@@ -9,51 +11,49 @@ function stateFor(result) {
   return result.current[1];
 }
 
-beforeEach(function() {
-  jest.spyOn(console, "error");
-});
-
-afterEach(function() {
-  jest.clearAllMocks();
-});
-
 afterEach(cleanup);
 
 test("it cancels the task when the component is unmounted", async () => {
+  const handleError = jest.fn();
   const { result, unmount } = renderHook(() =>
     useTask(function*() {
       yield timeout(0);
     })
   );
 
-  let lastInstance;
-
   act(() => {
-    lastInstance = perform(result);
+    perform(result).catch(handleError);
   });
 
   unmount();
 
-  expect(lastInstance.current.isCancelled).toBe(true);
-  expect(console.error).toBeCalledTimes(0); // eslint-disable-line no-console
+  // Wait a tick for the promise rejection to be handled
+  await timeout(0);
+
+  expect(handleError).toBeCalledWith(expect.any(CancellationError));
 });
 
 test("does not cancel when props change", async () => {
-  const { result, rerender, waitForNextUpdate } = renderHook(() =>
+  const def = new TestDeferred<undefined>();
+  const handleError = jest.fn();
+  const { result, rerender } = renderHook(() =>
     useTask(function*() {
-      yield timeout(0);
+      yield def;
       return "Done!";
     })
   );
 
+  let instance;
+
   act(() => {
-    perform(result);
+    instance = perform(result).catch(handleError);
   });
 
   rerender();
 
-  await waitForNextUpdate();
+  def.resolve(undefined);
+  await instance;
 
   expect(stateFor(result).lastSuccessful.result).toBe("Done!");
-  expect(console.error).toBeCalledTimes(0);
+  expect(handleError).toBeCalledTimes(0);
 });

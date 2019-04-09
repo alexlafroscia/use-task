@@ -2,6 +2,7 @@ import React from "react";
 
 import Deferred from "./deferred";
 import CancellationError, { isCancellationError } from "./cancellation-error";
+import { Action } from "./state";
 
 export type AnyFunction = (...args: any[]) => any;
 type Generator = (...args: any[]) => IterableIterator<any>;
@@ -20,28 +21,29 @@ export interface TaskInstanceState<T> {
   error?: any;
 }
 
-class TaskInstance<Func extends AnyFunction, R = Result<Func>>
-  extends Deferred<R>
-  implements React.RefObject<TaskInstanceState<R>> {
+class TaskInstance<Func extends AnyFunction> extends Deferred<Result<Func>>
+  implements React.RefObject<TaskInstanceState<Result<Func>>> {
   fn: Func;
 
   [Symbol.toStringTag] = "TaskInstance";
 
-  current: TaskInstanceState<R> = {
+  current: TaskInstanceState<Result<Func>> = {
+    isRunning: true,
     isCancelled: false,
-    isRunning: false,
     isComplete: false
   };
 
-  private notifyStateChange: () => void;
+  private dispatch: (value: Action<Func>) => void;
   private parentInstance?: TaskInstance<any>;
   private onCancelCallbacks: Array<AnyFunction> = [];
 
-  constructor(fn: Func, updateTaskState) {
+  constructor(fn: Func, dispatch: (value: Action<Func>) => void) {
     super();
 
     this.fn = fn;
-    this.notifyStateChange = updateTaskState;
+    this.dispatch = dispatch;
+
+    dispatch({ type: "BEGIN", instance: this });
   }
 
   /**
@@ -74,16 +76,8 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>>
     });
   }
 
-  begin() {
-    this.updatePublicState({ isRunning: true });
-  }
-
-  resolve(result: R) {
-    this.updatePublicState({
-      isRunning: false,
-      isComplete: true,
-      result
-    });
+  resolve(result: Result<Func>) {
+    this.dispatch({ type: "COMPLETE", instance: this, result });
 
     if (this.subscribed) {
       super.resolve(result);
@@ -91,11 +85,11 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>>
   }
 
   reject(reason: any) {
-    this.updatePublicState({
-      isRunning: false,
-      isComplete: true,
-      error: reason
-    });
+    if (isCancellationError(reason)) {
+      this.dispatch({ type: "CANCEL", instance: this, error: reason });
+    } else {
+      this.dispatch({ type: "ERROR", instance: this, error: reason });
+    }
 
     if (this.subscribed) {
       super.reject(reason);
@@ -107,18 +101,11 @@ class TaskInstance<Func extends AnyFunction, R = Result<Func>>
       return;
     }
 
-    this.current.isCancelled = true;
-    this.reject(error);
-
     for (const callback of this.onCancelCallbacks) {
       callback(error);
     }
-  }
 
-  private updatePublicState(props) {
-    Object.assign(this.current, props);
-
-    this.notifyStateChange();
+    this.reject(error);
   }
 }
 
