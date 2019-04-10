@@ -1,17 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "es2018",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "noImplicitAny": false,
-    "jsx": "react"
-  },
-  "include": ["src"]
+  "extends": "./config/tsconfig.base.json",
+  "include": ["src/**/*"],
+  "exclude": ["src/__tests__/**/*"]
 }
