@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next",
-    "now-build": "cd .. && yarn build && cd docs && next build"
+    "now-build": "next build"
   },
   "dependencies": {
     "@emotion/core": "^10.0.10",
     "@emotion/styled": "^10.0.10",
     "@zeit/next-typescript": "^1.1.1",
+    "awesome-typescript-loader": "^5.2.1",
     "babel-plugin-emotion": "^10.0.9",
     "next": "^8.0.4",
     "polished": "^3.2.0",
