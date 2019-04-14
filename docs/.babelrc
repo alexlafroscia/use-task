@@ -1,4 +1,3 @@
 {
-  "presets": ["next/babel", "@zeit/next-typescript/babel"],
-  "plugins": [["emotion"]]
+  "presets": ["next/babel", "@zeit/next-typescript/babel"]
 }

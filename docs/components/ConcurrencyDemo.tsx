@@ -1,32 +1,24 @@
 import React, { useState } from "react";
-import styled from "@emotion/styled";
+import { withStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import LinearProgress from "@material-ui/core/LinearProgress";
 import useTask, { timeout } from "use-task";
 
-import { TextButton } from "./Button";
-import BaseProgressBar from "./ProgressBar";
-
-const Task = styled.div`
-  display: flex;
-  margin-bottom: 10px;
-
-  > ${TextButton} {
-    margin-left: 10px;
+const styles = () => ({
+  task: {
+    alignItems: "center",
+    display: "flex",
+    marginBottom: 10
   }
-`;
+});
 
-const ProgressBar = styled(BaseProgressBar)`
-  flex-grow: 1;
-`;
-
-const ConcurrencyDemo = ({ title, keep, ...rest }) => {
-  const [progressBars, setProgressBars] = useState([]);
-
+const ConcurrencyDemo = ({ title, keep, classes, ...rest }) => {
   const [fillProgressBar, fillProgressBarTask] = useTask(
     function*(setProgress) {
       let ticks = 0;
 
       while (ticks <= 100) {
-        yield timeout(100);
+        yield timeout(40);
 
         setProgress(ticks);
 
@@ -36,10 +28,20 @@ const ConcurrencyDemo = ({ title, keep, ...rest }) => {
     { keep }
   );
 
+  const [progressBars, setProgressBars] = useState<
+    {
+      completion: number;
+      task: ReturnType<typeof fillProgressBar>;
+    }[]
+  >([]);
+
   return (
     <div {...rest}>
       <h2>{title}</h2>
-      <button
+      <Button
+        size="small"
+        variant="contained"
+        color="primary"
         onClick={() => {
           const index = progressBars.length;
           const setProgress = completion => {
@@ -55,32 +57,40 @@ const ConcurrencyDemo = ({ title, keep, ...rest }) => {
         }}
       >
         Create Progress Bar
-      </button>
+      </Button>
 
-      <button
+      <Button
+        size="small"
         onClick={() => {
           fillProgressBarTask.cancelAll();
           setProgressBars([]);
         }}
       >
         Clear Bars
-      </button>
+      </Button>
       <hr />
       {progressBars.map((progressBar, index) => (
-        <Task key={index}>
-          <ProgressBar color="red" completion={progressBar.completion} />
-          <TextButton
+        <div className={classes.task} key={index}>
+          <LinearProgress
+            style={{ flexGrow: 1 }}
+            color="secondary"
+            variant="determinate"
+            value={progressBar.completion}
+          />
+          <Button
+            style={{ marginLeft: 10 }}
+            size="small"
             disabled={!progressBar.task.current.isRunning}
             onClick={() => {
               progressBar.task.cancel();
             }}
           >
             Cancel!
-          </TextButton>
-        </Task>
+          </Button>
+        </div>
       ))}
     </div>
   );
 };
 
-export default ConcurrencyDemo;
+export default withStyles(styles)(ConcurrencyDemo);

@@ -1,24 +1,25 @@
 import React from "react";
-import styled from "@emotion/styled";
+import { withStyles } from "@material-ui/core/styles";
 
-import BaseDemo from "../components/ConcurrencyDemo";
+import Layout from "../layouts/Base";
+import Demo from "../components/ConcurrencyDemo";
 
-const Demo = styled(BaseDemo)`
-  & + * {
-    margin-top: 10px;
+const styles = () => ({
+  demo: {
+    marginTop: 10
   }
-`;
+});
 
-const IndexPage = () => {
+const IndexPage = ({ classes }) => {
   return (
-    <>
+    <Layout>
       <h1>Use Task</h1>
 
-      <Demo title="Keep All" keep="all" />
-      <Demo title="Keep Last" keep="last" />
-      <Demo title="Keep First" keep="first" />
-    </>
+      <Demo className={classes.demo} title="Keep All" keep="all" />
+      <Demo className={classes.demo} title="Keep Last" keep="last" />
+      <Demo className={classes.demo} title="Keep First" keep="first" />
+    </Layout>
   );
 };
 
-export default IndexPage;
+export default withStyles(styles)(IndexPage);
