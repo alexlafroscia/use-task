@@ -1,10 +1,6 @@
 import { Reducer } from "react";
-import { KeepValue } from "./index";
-import TaskInstance, {
-  AnyFunction,
-  TaskInstanceState,
-  Result
-} from "./instance";
+import TaskInstance from "./instance";
+import { AnyFunction, KeepValue, Result, TaskInstanceState } from "./types";
 import AbortError from "./abort-error";
 
 export type InternalTaskState<F extends AnyFunction> = {

@@ -1,23 +1,9 @@
 import { useMemo, useCallback, useReducer, useRef } from "react";
 import useWillUnmount from "@rooks/use-will-unmount";
-import TaskInstance, {
-  TaskInstanceState,
-  Result,
-  AnyFunction
-} from "./instance";
+import TaskInstance from "./instance";
 import perform from "./perform";
+import { AnyFunction, UseTaskConfig, UseTaskResult, TaskState } from "./types";
 import reducer, { InternalTaskState, TaskStateReducer } from "./state";
-
-export type KeepValue = "first" | "last" | "all";
-
-type TaskState<F extends AnyFunction> = {
-  isRunning: boolean;
-  performCount: number;
-  lastSuccessful?: TaskInstanceState<Result<F>>;
-  cancelAll: () => void;
-};
-
-type Tuple<A, B> = [A, B];
 
 function cancelAllInstances(instances: TaskInstance<any>[]): void {
   instances
@@ -25,14 +11,10 @@ function cancelAllInstances(instances: TaskInstance<any>[]): void {
     .forEach(i => i.abortController.abort());
 }
 
-export type UseTaskConfig = {
-  keep: KeepValue;
-};
-
 export default function useTask<T extends AnyFunction>(
   taskDefinition: T,
-  { keep = "last" }: UseTaskConfig = { keep: "last" }
-): Tuple<(...args: Parameters<T>) => TaskInstance<T>, TaskState<T>> {
+  { keep = "last" }: UseTaskConfig = {}
+): UseTaskResult<T> {
   const [taskState, dispatch] = useReducer<TaskStateReducer<T>>(reducer, {
     keep,
     instances: [],
