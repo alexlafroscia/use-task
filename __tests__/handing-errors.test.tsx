@@ -93,5 +93,5 @@ test("it does not report an errored task as the last successful task", async () 
   await def;
 
   expect(instance.current.error).not.toBeUndefined();
-  expect(stateFor(result).lastSucessful).toBe(undefined);
+  expect(stateFor(result).lastSuccessful).toBe(undefined);
 });

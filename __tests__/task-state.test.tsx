@@ -50,9 +50,31 @@ test("exposing whether any instance is running", async () => {
 
   expect(stateFor(result).isRunning).toBe(true);
 
-  def.resolve(undefined);
+  def.resolve();
 
   await waitForNextUpdate();
 
   expect(stateFor(result).isRunning).toBe(false);
+});
+
+test("providing the last successful task instance", async () => {
+  const def = new TestDeferred();
+
+  const { result, waitForNextUpdate } = renderHook(() =>
+    useTask(function*() {
+      yield def;
+      return "Done!";
+    })
+  );
+
+  act(() => {
+    perform(result);
+  });
+
+  def.resolve();
+
+  await waitForNextUpdate();
+
+  const state = stateFor(result);
+  expect(state.lastSuccessful && state.lastSuccessful.result).toBe("Done!");
 });
