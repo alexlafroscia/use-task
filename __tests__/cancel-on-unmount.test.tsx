@@ -1,15 +1,7 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
-import useTask, { timeout } from "..";
-import AbortError from "../abort-error";
-import { TestDeferred } from "../deferred";
-
-function perform(result) {
-  return result.current[0]();
-}
-
-function stateFor(result) {
-  return result.current[1];
-}
+import { TestDeferred, perform, stateFor } from "./helpers";
+import useTask, { timeout } from "../src";
+import AbortError from "../src/abort-error";
 
 afterEach(cleanup);
 

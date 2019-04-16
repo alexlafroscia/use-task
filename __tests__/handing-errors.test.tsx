@@ -1,18 +1,10 @@
 /* eslint-disable require-yield */
 
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
-import useTask, { timeout } from "../index";
-import { TestDeferred } from "../deferred";
+import { TestDeferred, perform, stateFor } from "./helpers";
+import useTask, { timeout } from "../src";
 
 afterEach(cleanup);
-
-function perform(result) {
-  return result.current[0]();
-}
-
-function stateFor(result) {
-  return result.current[1];
-}
 
 test("it can handle an error thrown immediately in a task", async () => {
   const error = new Error("Something went wrong");

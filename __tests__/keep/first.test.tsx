@@ -1,15 +1,8 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
-import useTask from "../../index";
+import { perform, stateFor } from "../helpers";
+import useTask from "../../src";
 
 afterEach(cleanup);
-
-function perform(result) {
-  return result.current[0]();
-}
-
-function stateFor(result) {
-  return result.current[1];
-}
 
 test("it prevents simultaneous async work", async () => {
   const done = jest.fn();

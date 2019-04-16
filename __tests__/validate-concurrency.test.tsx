@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { renderHook, cleanup } from "react-hooks-testing-library";
-import useTask, { KeepValue } from "../index";
+import useTask, { KeepValue } from "../src";
 
 afterEach(cleanup);
 

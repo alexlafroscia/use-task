@@ -1,16 +1,8 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
-import useTask, { timeout } from "../../index";
-import { TestDeferred } from "../../deferred";
+import { TestDeferred, perform, stateFor } from "../helpers";
+import useTask, { timeout } from "../../src";
 
 afterEach(cleanup);
-
-function perform(result) {
-  return result.current[0]();
-}
-
-function stateFor(result) {
-  return result.current[1];
-}
 
 test("it allows multiple tasks to run at a time", async () => {
   const done = jest.fn();

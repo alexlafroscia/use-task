@@ -1,12 +1,8 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
-import useTask, { timeout } from "../index";
-import { TestDeferred } from "../deferred";
+import { TestDeferred, perform } from "./helpers";
+import useTask, { timeout } from "../src/index";
 
 afterEach(cleanup);
-
-function perform(result) {
-  return result.current[0]();
-}
 
 test("cancelling an outer task cancels an inner task", async () => {
   const beforeCancel = jest.fn();

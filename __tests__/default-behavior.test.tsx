@@ -1,22 +1,17 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
-import useTask, { timeout } from "..";
+import { perform, stateFor } from "./helpers";
+import useTask, { timeout } from "../src";
 
 afterEach(cleanup);
-
-function perform(result) {
-  result.current[0]();
-}
-
-function stateFor(result) {
-  return result.current[1];
-}
 
 test("it can perform some synchronous work", async () => {
   const done = jest.fn();
 
   const { result, waitForNextUpdate } = renderHook(() => useTask(done));
 
-  act(() => perform(result));
+  act(() => {
+    perform(result);
+  });
 
   await waitForNextUpdate();
 
@@ -36,7 +31,9 @@ test("it can perform an async function", async () => {
   expect(stateFor(result).isRunning).toBe(false);
   expect(stateFor(result).performCount).toBe(0);
 
-  act(() => perform(result));
+  act(() => {
+    perform(result);
+  });
 
   expect(stateFor(result).isRunning).toBe(true);
 
@@ -59,7 +56,9 @@ test("it can perform a generator function", async () => {
   expect(stateFor(result).isRunning).toBe(false);
   expect(stateFor(result).performCount).toBe(0);
 
-  act(() => perform(result));
+  act(() => {
+    perform(result);
+  });
 
   expect(stateFor(result).isRunning).toBe(true);
 
