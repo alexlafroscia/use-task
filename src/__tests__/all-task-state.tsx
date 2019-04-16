@@ -1,6 +1,6 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
 import useTask, { timeout } from "..";
-import { TestDeferred as Deferred } from "../deferred";
+import { TestDeferred } from "../deferred";
 
 afterEach(cleanup);
 
@@ -42,7 +42,7 @@ test("allows cancelling all task instances", async () => {
 });
 
 test("exposing whether any instance is running", async () => {
-  const def = new Deferred<undefined>();
+  const def = new TestDeferred();
 
   const { result, waitForNextUpdate } = renderHook(() =>
     useTask(function*() {

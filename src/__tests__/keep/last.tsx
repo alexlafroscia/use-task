@@ -1,6 +1,6 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
 import useTask from "../../index";
-import { TestDeferred as Deferred } from "../../deferred";
+import { TestDeferred } from "../../deferred";
 
 afterEach(cleanup);
 
@@ -13,7 +13,7 @@ function stateFor(result) {
 }
 
 test("it prevents simultaneous async work", async () => {
-  const def = new Deferred<undefined>();
+  const def = new TestDeferred();
 
   const { result } = renderHook(() =>
     useTask(

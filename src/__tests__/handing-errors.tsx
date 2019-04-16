@@ -2,7 +2,7 @@
 
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
 import useTask, { timeout } from "../index";
-import { TestDeferred as Deferred } from "../deferred";
+import { TestDeferred } from "../deferred";
 
 afterEach(cleanup);
 
@@ -18,7 +18,7 @@ test("it can handle an error thrown immediately in a task", async () => {
   const error = new Error("Something went wrong");
   const handleError = jest.fn();
 
-  const def = new Deferred<undefined>();
+  const def = new TestDeferred();
   let taskInstance;
 
   const { result } = renderHook(() =>
@@ -51,7 +51,7 @@ test("it can handle an error thrown later in a task", async () => {
   const error = new Error("Something went wrong");
   const handleError = jest.fn();
 
-  const def = new Deferred<undefined>();
+  const def = new TestDeferred();
   let taskInstance;
 
   const { result } = renderHook(() =>
@@ -84,7 +84,7 @@ test("it can handle an error thrown later in a task", async () => {
 test("it does not report an errored task as the last successful task", async () => {
   const error = new Error("Something went wrong");
 
-  const def = new Deferred<undefined>();
+  const def = new TestDeferred();
   let instance;
 
   const { result } = renderHook(() =>

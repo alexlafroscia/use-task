@@ -34,7 +34,7 @@ test("it cancels the task when the component is unmounted", async () => {
 });
 
 test("does not cancel when props change", async () => {
-  const def = new TestDeferred<undefined>();
+  const def = new TestDeferred();
   const handleError = jest.fn();
   const { result, rerender } = renderHook(() =>
     useTask(function*() {

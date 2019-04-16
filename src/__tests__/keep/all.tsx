@@ -1,6 +1,6 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
 import useTask, { timeout } from "../../index";
-import { TestDeferred as Deferred } from "../../deferred";
+import { TestDeferred } from "../../deferred";
 
 afterEach(cleanup);
 
@@ -42,8 +42,8 @@ test("it allows multiple tasks to run at a time", async () => {
 });
 
 test("does not cancel existing runs when one completes", async () => {
-  const def1 = new Deferred();
-  const def2 = new Deferred();
+  const def1 = new TestDeferred<string>();
+  const def2 = new TestDeferred<string>();
   let first = true;
 
   const { result, waitForNextUpdate } = renderHook(() =>

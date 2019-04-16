@@ -55,8 +55,9 @@ export default class Deferred<T> implements Promise<T> {
   }
 }
 
-export class TestDeferred<T> extends Deferred<T> {
-  resolve(result: T) {
+export class TestDeferred<T = undefined> extends Deferred<T> {
+  resolve(result?: T) {
+    // @ts-ignore
     super.resolve(result);
   }
 
