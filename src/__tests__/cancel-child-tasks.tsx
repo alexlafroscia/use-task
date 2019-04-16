@@ -38,7 +38,7 @@ test("cancelling an outer task cancels an inner task", async () => {
   await def;
 
   act(() => {
-    outerInstance.cancel();
+    outerInstance.abortController.abort();
   });
 
   expect(beforeCancel).toBeCalled();

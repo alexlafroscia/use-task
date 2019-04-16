@@ -1,6 +1,6 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
 import useTask, { timeout } from "..";
-import CancellationError from "../cancellation-error";
+import AbortError from "../abort-error";
 import { TestDeferred } from "../deferred";
 
 function perform(result) {
@@ -30,7 +30,7 @@ test("it cancels the task when the component is unmounted", async () => {
   // Wait a tick for the promise rejection to be handled
   await timeout(0);
 
-  expect(handleError).toBeCalledWith(expect.any(CancellationError));
+  expect(handleError).toBeCalledWith(expect.any(AbortError));
 });
 
 test("does not cancel when props change", async () => {

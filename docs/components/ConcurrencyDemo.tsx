@@ -82,7 +82,7 @@ const ConcurrencyDemo = ({ title, keep, classes, ...rest }) => {
             size="small"
             disabled={!progressBar.task.current.isRunning}
             onClick={() => {
-              progressBar.task.cancel();
+              progressBar.task.abortController.abort();
             }}
           >
             Cancel!
