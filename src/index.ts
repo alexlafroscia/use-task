@@ -20,7 +20,9 @@ type TaskState<F extends AnyFunction> = {
 type Tuple<A, B> = [A, B];
 
 function cancelAllInstances(instances: TaskInstance<any>[]): void {
-  instances.filter(i => i.current.isRunning).forEach(i => i.cancel());
+  instances
+    .filter(i => i.current.isRunning)
+    .forEach(i => i.abortController.abort());
 }
 
 export type UseTaskConfig = {
@@ -72,7 +74,7 @@ export default function useTask<T extends AnyFunction>(
       });
 
       if (keep === "first" && derivedState.isRunning) {
-        instance.cancel();
+        instance.abortController.abort();
         return instance;
       }
 
@@ -91,4 +93,4 @@ export default function useTask<T extends AnyFunction>(
 }
 
 export { default as timeout } from "./timeout";
-export { isCancellationError, ignoreCancellation } from "./cancellation-error";
+export { isAbortError, ignoreAbort } from "./abort-error";

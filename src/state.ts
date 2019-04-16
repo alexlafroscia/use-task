@@ -5,7 +5,7 @@ import TaskInstance, {
   TaskInstanceState,
   Result
 } from "./instance";
-import CancellationError from "./cancellation-error";
+import AbortError from "./abort-error";
 
 export type InternalTaskState<F extends AnyFunction> = {
   keep: KeepValue;
@@ -34,7 +34,7 @@ interface Error<F extends AnyFunction> extends BaseAction<F> {
 
 interface Cancel<F extends AnyFunction> extends BaseAction<F> {
   type: "CANCEL";
-  error: CancellationError;
+  error: AbortError;
 }
 
 export type Action<F extends AnyFunction> =

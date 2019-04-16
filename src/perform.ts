@@ -1,4 +1,4 @@
-import { isCancellationError, timeout } from "./index";
+import { isAbortError, timeout } from "./index";
 import TaskInstance, { AnyFunction } from "./instance";
 
 export default async function perform<F extends AnyFunction>(
@@ -30,14 +30,17 @@ export default async function perform<F extends AnyFunction>(
         const { value, done } = generator.next(lastResolvedValue);
 
         if (value instanceof TaskInstance) {
-          value.setParent(task);
+          // Cancel the "child" when the "parent" is cancelled
+          task.abortController.signal.addEventListener("abort", () => {
+            value.abortController.abort();
+          });
         }
 
         lastResolvedValue = await value;
         isFinished = done;
       } catch (e) {
-        if (isCancellationError(e)) {
-          task.cancel(e);
+        if (isAbortError(e)) {
+          task.abortController.abort();
         } else {
           task.reject(e);
         }
