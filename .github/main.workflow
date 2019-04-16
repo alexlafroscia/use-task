@@ -1,6 +1,10 @@
 workflow "Build and Test" {
   on = "push"
-  resolves = ["Run Tests", "Run Linting"]
+  resolves = [
+    "Run Tests",
+    "Run Linting",
+    "Build Package",
+  ]
 }
 
 action "Install Dependencies" {
@@ -31,4 +35,10 @@ workflow "Clean Up Merged Branch" {
 action "Delete Merged Branch" {
   uses = "jessfraz/branch-cleanup-action@master"
   secrets = ["GITHUB_TOKEN"]
+}
+
+action "Build Package" {
+  uses = "nuxt/actions-yarn@master"
+  needs = ["Install Dependencies"]
+  args = "build"
 }
