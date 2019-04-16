@@ -93,4 +93,4 @@ export default function useTask<T extends AnyFunction>(
 }
 
 export { default as timeout } from "./timeout";
-export { isAbortError, ignoreAbort } from "./abort-error";
+export { isAbortError } from "./abort-error";
