@@ -1,15 +1,10 @@
 import { useMemo, useCallback, useReducer, useRef } from "react";
 import useWillUnmount from "@rooks/use-will-unmount";
+import cancelAllInstances from "./cancel-all";
 import TaskInstance from "./instance";
 import perform from "./perform";
 import { AnyFunction, UseTaskConfig, UseTaskResult, TaskState } from "./types";
 import reducer, { InternalTaskState, TaskStateReducer } from "./state";
-
-function cancelAllInstances(instances: TaskInstance<any>[]): void {
-  instances
-    .filter(i => i.current.isRunning)
-    .forEach(i => i.abortController.abort());
-}
 
 export default function useTask<T extends AnyFunction>(
   taskDefinition: T,
