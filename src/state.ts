@@ -1,7 +1,14 @@
-import { Reducer } from "react";
+import { Reducer, useReducer, useMemo } from "react";
 import TaskInstance from "./instance";
-import { AnyFunction, KeepValue, Result, TaskInstanceState } from "./types";
-import AbortError from "./abort-error";
+import {
+  AnyFunction,
+  KeepValue,
+  Result,
+  TaskInstanceState,
+  TaskState
+} from "./types";
+import AbortError from "./utils/abort-error";
+import { cancelAllInstances } from "./utils/cancellation";
 
 export type InternalTaskState<F extends AnyFunction> = {
   keep: KeepValue;
@@ -110,4 +117,27 @@ const reducer = (state, action: Action<any>) => {
   }
 };
 
-export default reducer;
+export function useTaskStateReducer<T extends AnyFunction>(keep: KeepValue) {
+  return useReducer<TaskStateReducer<T>>(reducer, {
+    keep,
+    instances: [],
+    lastSuccessful: undefined
+  });
+}
+
+export function useDerivedState<T extends AnyFunction>(
+  taskState: InternalTaskState<T>
+) {
+  return useMemo<TaskState<T>>(
+    () => ({
+      isRunning: taskState.instances.some(t => t.current.isRunning),
+      performCount: taskState.instances.length,
+      lastSuccessful:
+        taskState.lastSuccessful && taskState.lastSuccessful.current,
+      cancelAll() {
+        cancelAllInstances(taskState.instances);
+      }
+    }),
+    [taskState.instances, taskState.lastSuccessful]
+  );
+}

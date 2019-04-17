@@ -2,15 +2,19 @@ import { useCallback } from "react";
 import TaskInstance from "./instance";
 import perform from "./perform";
 import { useTaskStateReducer, useDerivedState } from "./state";
-import { AnyFunction, UseTaskConfig, UseTaskResult } from "./types";
+import {
+  SignalReceivingFunction,
+  UseTaskConfig,
+  UseTaskWithSignalResult
+} from "./types";
 import useIsMounted from "./hooks/use-is-mounted";
 import useUnmountWithState from "./hooks/use-unmount-with-state";
 import { cancelAllInstances } from "./utils/cancellation";
 
-export default function useTask<T extends AnyFunction>(
+export default function useTaskWithSignal<T extends SignalReceivingFunction>(
   taskDefinition: T,
   { keep = "last" }: UseTaskConfig = {}
-): UseTaskResult<T> {
+): UseTaskWithSignalResult<T> {
   const [taskState, dispatch] = useTaskStateReducer<T>(keep);
 
   if (keep !== taskState.keep) {
@@ -42,7 +46,10 @@ export default function useTask<T extends AnyFunction>(
         cancelAllInstances(taskState.instances);
       }
 
-      perform(instance, args as Parameters<T>);
+      perform(instance, [
+        instance.abortController.signal,
+        ...args
+      ] as Parameters<T>);
 
       return instance;
     },
@@ -58,7 +65,3 @@ export default function useTask<T extends AnyFunction>(
 
   return [runCallback, derivedState];
 }
-
-export { default as useTaskWithSignal } from "./with-signal";
-export { default as timeout } from "./utils/timeout";
-export { isAbortError } from "./utils/abort-error";

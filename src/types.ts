@@ -4,6 +4,17 @@ export interface AnyFunction {
   (...args: any[]): any;
 }
 
+export interface SignalReceivingFunction {
+  (signal: AbortSignal, ...args: any[]): any;
+}
+
+export type NonSignalParameters<F extends AnyFunction> = F extends (
+  signal: AbortSignal,
+  ...rest: infer A
+) => any
+  ? A
+  : Parameters<F>;
+
 export interface Generator extends AnyFunction {
   (...args: any[]): IterableIterator<any>;
 }
@@ -37,5 +48,10 @@ export type UseTaskConfig = {
 
 export type UseTaskResult<T extends AnyFunction> = [
   (...args: Parameters<T>) => TaskInstance<T>,
+  TaskState<T>
+];
+
+export type UseTaskWithSignalResult<T extends SignalReceivingFunction> = [
+  (...args: NonSignalParameters<T>) => TaskInstance<T>,
   TaskState<T>
 ];

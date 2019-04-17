@@ -1,5 +1,5 @@
-import Deferred from "../src/deferred";
 import { AnyFunction, UseTaskResult } from "../src/types";
+import Deferred from "../src/utils/deferred";
 
 export class TestDeferred<T = undefined> extends Deferred<T> {
   resolve(result?: T) {

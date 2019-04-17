@@ -1,8 +1,8 @@
 import { RefObject } from "react";
-import Deferred from "./deferred";
-import AbortError from "./abort-error";
 import { Action } from "./state";
 import { AnyFunction, TaskInstanceState, Result } from "./types";
+import AbortError from "./utils/abort-error";
+import Deferred from "./utils/deferred";
 
 class TaskInstance<Func extends AnyFunction> extends Deferred<Result<Func>>
   implements RefObject<TaskInstanceState<Result<Func>>> {

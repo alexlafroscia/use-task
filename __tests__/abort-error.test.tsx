@@ -1,4 +1,4 @@
-import AbortError, { isAbortError } from "../src/abort-error";
+import AbortError, { isAbortError } from "../src/utils/abort-error";
 
 describe("AbortError", () => {
   test("has the right name", () => {
