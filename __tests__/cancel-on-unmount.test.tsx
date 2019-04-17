@@ -1,7 +1,7 @@
 import { renderHook, cleanup, act } from "react-hooks-testing-library";
-import { TestDeferred, perform, stateFor } from "./helpers";
+import { TestDeferred, perform } from "./helpers";
 import useTask, { timeout } from "../src";
-import AbortError from "../src/abort-error";
+import AbortError from "../src/utils/abort-error";
 
 afterEach(cleanup);
 
@@ -46,6 +46,5 @@ test("does not cancel when props change", async () => {
   def.resolve(undefined);
   await instance;
 
-  expect(stateFor(result).lastSuccessful.result).toBe("Done!");
   expect(handleError).toBeCalledTimes(0);
 });

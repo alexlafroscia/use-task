@@ -1,24 +1,8 @@
 import { RefObject } from "react";
-import Deferred from "./deferred";
-import AbortError from "./abort-error";
 import { Action } from "./state";
-
-export type AnyFunction = (...args: any[]) => any;
-type Generator = (...args: any[]) => IterableIterator<any>;
-
-export type Result<T extends AnyFunction> = T extends Generator
-  ? ReturnType<T> extends IterableIterator<infer U>
-    ? U
-    : never
-  : ReturnType<T>;
-
-export interface TaskInstanceState<T> {
-  isRunning: boolean;
-  isComplete: boolean;
-  isCancelled: boolean;
-  result?: T;
-  error?: any;
-}
+import { AnyFunction, TaskInstanceState, Result } from "./types";
+import AbortError from "./utils/abort-error";
+import Deferred from "./utils/deferred";
 
 class TaskInstance<Func extends AnyFunction> extends Deferred<Result<Func>>
   implements RefObject<TaskInstanceState<Result<Func>>> {

@@ -1,4 +1,5 @@
-import Deferred from "../src/deferred";
+import { AnyFunction, UseTaskResult } from "../src/types";
+import Deferred from "../src/utils/deferred";
 
 export class TestDeferred<T = undefined> extends Deferred<T> {
   resolve(result?: T) {
@@ -11,10 +12,19 @@ export class TestDeferred<T = undefined> extends Deferred<T> {
   }
 }
 
-export function perform(result) {
-  return result.current[0]();
+interface TaskInstanceResultRef<T extends AnyFunction> {
+  current: UseTaskResult<T>;
 }
 
-export function stateFor(result) {
+export function perform<T extends AnyFunction>(
+  result: TaskInstanceResultRef<T>,
+  ...args: Parameters<T>
+) {
+  return result.current[0](...args);
+}
+
+export function stateFor<T extends AnyFunction>(
+  result: TaskInstanceResultRef<T>
+) {
   return result.current[1];
 }

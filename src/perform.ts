@@ -1,5 +1,6 @@
 import { isAbortError, timeout } from "./index";
-import TaskInstance, { AnyFunction } from "./instance";
+import TaskInstance from "./instance";
+import { AnyFunction } from "./types";
 
 export default async function perform<F extends AnyFunction>(
   task: TaskInstance<F>,

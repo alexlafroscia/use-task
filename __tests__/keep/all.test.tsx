@@ -69,10 +69,12 @@ test("does not cancel existing runs when one completes", async () => {
   def2.resolve("second");
   await waitForNextUpdate();
 
-  expect(stateFor(result).lastSuccessful.result).toBe("second");
+  let state = stateFor(result);
+  expect(state.lastSuccessful && state.lastSuccessful.result).toBe("second");
 
   def1.resolve("first");
   await waitForNextUpdate();
 
-  expect(stateFor(result).lastSuccessful.result).toBe("first");
+  state = stateFor(result);
+  expect(state.lastSuccessful && state.lastSuccessful.result).toBe("first");
 });
