@@ -44,6 +44,9 @@ action "Build Package" {
 }
 
 action "List Bundle Size" {
-  uses = "./.github/list-bundle-size"
+  uses = "alexlafroscia/list-file-sizes-action@master"
   needs = ["Build Package"]
+  env = {
+    FOLDER = "pkg"
+  }
 }
