@@ -3,7 +3,7 @@ workflow "Build and Test" {
   resolves = [
     "Run Tests",
     "Run Linting",
-    "Build Package",
+    "List Bundle Size",
   ]
 }
 
@@ -41,4 +41,9 @@ action "Build Package" {
   uses = "nuxt/actions-yarn@master"
   needs = ["Install Dependencies"]
   args = "build"
+}
+
+action "List Bundle Size" {
+  uses = "./.github/list-bundle-size"
+  needs = ["Build Package"]
 }
