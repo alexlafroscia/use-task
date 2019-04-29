@@ -1,14 +1,24 @@
 import React, { useState } from "react";
-import { withStyles } from "@material-ui/core/styles";
+import { withStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import useTask, { timeout } from "use-task";
+import { Typography } from "@material-ui/core";
 
-const styles = () => ({
+const styles = (theme: Theme) => ({
   task: {
     alignItems: "center",
     display: "flex",
-    marginBottom: 10
+    marginBottom: theme.spacing.unit
+  },
+  clearAllButton: {
+    marginLeft: theme.spacing.unit
+  },
+  progressBar: {
+    flexGrow: 1
+  },
+  cancelButton: {
+    marginLeft: theme.spacing.unit
   }
 });
 
@@ -37,7 +47,7 @@ const ConcurrencyDemo = ({ title, keep, classes, ...rest }) => {
 
   return (
     <div {...rest}>
-      <h2>{title}</h2>
+      <Typography variant="h6">{title}</Typography>
       <Button
         size="small"
         variant="contained"
@@ -61,6 +71,7 @@ const ConcurrencyDemo = ({ title, keep, classes, ...rest }) => {
 
       <Button
         size="small"
+        className={classes.clearAllButton}
         onClick={() => {
           fillProgressBarTask.cancelAll();
           setProgressBars([]);
@@ -72,13 +83,13 @@ const ConcurrencyDemo = ({ title, keep, classes, ...rest }) => {
       {progressBars.map((progressBar, index) => (
         <div className={classes.task} key={index}>
           <LinearProgress
-            style={{ flexGrow: 1 }}
+            className={classes.progressBar}
             color="secondary"
             variant="determinate"
             value={progressBar.completion}
           />
           <Button
-            style={{ marginLeft: 10 }}
+            className={classes.cancelButton}
             size="small"
             disabled={!progressBar.task.current.isRunning}
             onClick={() => {
