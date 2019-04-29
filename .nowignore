@@ -1,2 +1,6 @@
-.next
+.github
+.vscode
+__mocks__
+__tests__
+pkg
 node_modules

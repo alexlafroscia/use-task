@@ -2,6 +2,12 @@
   "version": 2,
   "name": "use-task",
   "alias": "use-task.dev",
-  "builds": [{ "src": "docs/next.config.js", "use": "@now/next" }],
+  "builds": [
+    {
+      "src": "docs/package.json",
+      "use": "@now/static-build",
+      "config": { "distDir": "public" }
+    }
+  ],
   "routes": [{ "src": "/(.*)", "dest": "docs/$1" }]
 }

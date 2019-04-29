@@ -1,0 +1,22 @@
+import SEO from "../components/SEO";
+
+<SEO title="Installation" keywords={["installation"]} />
+
+# Installation
+
+You can install `useTask` through NPM by adding it to your dependencies:
+
+```bash
+# Using yarn
+yarn add use-task
+
+# Using NPM
+npm install --save use-task
+```
+
+## Global Dependency: `AbortController`
+
+Internally, `useTask` makes use of the [`AbortController`][abort-controller] API that was introduced as part of the effort to create a means for cancelling `fetch`. It should work in all evergreen browsers, but if that does not fit your use case, you can find information on polyfilling it [here][abort-controller-polyfill].
+
+[abort-controller]: https://developer.mozilla.org/en-US/docs/Web/API/AbortController
+[abort-controller-polyfill]: https://github.com/mysticatea/abort-controller

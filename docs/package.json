@@ -1,23 +1,40 @@
 {
   "name": "docs",
-  "version": "0.0.0",
   "private": true,
+  "description": "Documentation site for useTask",
+  "version": "0.1.0",
+  "keywords": [
+    "gatsby"
+  ],
+  "license": "MIT",
   "scripts": {
-    "dev": "next",
-    "now-build": "next build"
+    "build": "gatsby build",
+    "develop": "gatsby develop",
+    "start": "npm run develop",
+    "serve": "gatsby serve",
+    "now-build": "gatsby build"
   },
   "dependencies": {
     "@material-ui/core": "^3.9.3",
     "@material-ui/icons": "^3.0.2",
-    "@zeit/next-typescript": "^1.1.1",
+    "@mdx-js/mdx": "^1.0.15",
+    "@mdx-js/react": "^1.0.15",
+    "@mdx-js/tag": "^0.20.3",
     "awesome-typescript-loader": "^5.2.1",
-    "next": "^8.0.4",
+    "gatsby": "^2.3.31",
+    "gatsby-image": "^2.0.40",
+    "gatsby-mdx": "^0.6.2",
+    "gatsby-plugin-manifest": "^2.0.29",
+    "gatsby-plugin-material-ui": "^1.2.4",
+    "gatsby-plugin-offline": "^2.0.25",
+    "gatsby-plugin-react-helmet": "^3.0.12",
+    "gatsby-plugin-sharp": "^2.0.35",
+    "gatsby-plugin-typescript": "^2.0.13",
+    "gatsby-source-filesystem": "^2.0.32",
+    "gatsby-transformer-sharp": "^2.1.18",
+    "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-jss": "^8.6.1",
-    "use-task": "^1.0.0"
-  },
-  "devDependencies": {
-    "@types/next": "^8.0.3"
+    "react-helmet": "^5.2.0"
   }
 }
