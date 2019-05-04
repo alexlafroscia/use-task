@@ -5,13 +5,24 @@
  * See: https://www.gatsbyjs.org/docs/use-static-query/
  */
 
-import React from "react";
-import PropTypes from "prop-types";
+import React, { FC } from "react";
 import Helmet from "react-helmet";
 import { useStaticQuery, graphql } from "gatsby";
 
-function SEO({ description, lang, meta, keywords, title }) {
-  keywords = [...keywords, "react", "hooks", "task", "use-task"];
+interface Props {
+  title: string;
+  description?: string;
+  lang?: string;
+  keywords?: string[];
+}
+
+const SEO: FC<Props> = ({
+  title,
+  description = "",
+  lang = "en",
+  keywords = []
+}) => {
+  keywords = ["react", "hooks", "task", "use-task", ...keywords];
 
   const { site } = useStaticQuery(
     graphql`
@@ -69,33 +80,16 @@ function SEO({ description, lang, meta, keywords, title }) {
           name: `twitter:description`,
           content: metaDescription
         }
-      ]
-        .concat(
-          keywords.length > 0
-            ? {
-                name: `keywords`,
-                content: keywords.join(`, `)
-              }
-            : []
-        )
-        .concat(meta)}
+      ].concat(
+        keywords.length > 0
+          ? {
+              name: `keywords`,
+              content: keywords.join(`, `)
+            }
+          : []
+      )}
     />
   );
-}
-
-SEO.defaultProps = {
-  lang: `en`,
-  meta: [],
-  keywords: [],
-  description: ``
-};
-
-SEO.propTypes = {
-  description: PropTypes.string,
-  lang: PropTypes.string,
-  meta: PropTypes.arrayOf(PropTypes.object),
-  keywords: PropTypes.arrayOf(PropTypes.string),
-  title: PropTypes.string.isRequired
 };
 
 export default SEO;

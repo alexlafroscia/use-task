@@ -1,10 +1,38 @@
-import Demo from "../components/ConcurrencyDemo";
-import SEO from "../components/SEO";
+# `useTask`
 
-<SEO title="useTask" />
+> React Hook for managing async code
 
-# Use Task
+- Cancels tasks when the component unmounts
+- Allows for accessing derrived state of a task
 
-<Demo title="Keep All" keep="all" />
-<Demo title="Keep Last" keep="last" />
-<Demo title="Keep First" keep="first" />
+```jsx
+import useTask, { timeout } from "use-task";
+
+function MySearchComponent() {
+  const [performSearch, searchState] = useTask(function*(term) {
+    yield timeout(150); // Debounce while user is typing
+
+    const result = yield fetch(`https://search.api.com?term=${term}`);
+    const results = yield result.json();
+
+    return results;
+  });
+
+  return (
+    <>
+      <input
+        onInput={event => {
+          perform(event.target.value);
+        }}
+      />
+      {searchState.lastSuccessful && (
+        <ul>
+          {results.map(result => (
+            <li>{result}</li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+```

@@ -1,10 +1,38 @@
+---
+title: Configuration
+---
+
 import Demo from "../components/ConcurrencyDemo";
-import SEO from "../components/SEO";
 
-<SEO title="Configuration" keywords={["configuration"]} />
+When defining a task, a configuration object that can accept the following parameters:
 
-# Configuration
+## Keep
 
-<Demo title="Keep All" keep="all" />
-<Demo title="Keep Last" keep="last" />
-<Demo title="Keep First" keep="first" />
+The `keep` property defines whether task instances should be aborted based on another performace of the task.
+
+```js
+const [perform] = useTask(
+  function*() {
+    // ...
+  },
+  { keep: "last" }
+);
+```
+
+### `last` (default)
+
+Only the last instance of a task will be kept; if the task is performed again while another instance of it is running, the previous instance will be aborted.
+
+<Demo keep="last" />
+
+### `first`
+
+If the task is performed again while another instance is running, the new instance will be aborted instantly and the previous instance kept running.
+
+<Demo keep="first" />
+
+### `all`
+
+All instances of a task will be kept; a task instance will never be aborted based on performing the task again.
+
+<Demo keep="all" />

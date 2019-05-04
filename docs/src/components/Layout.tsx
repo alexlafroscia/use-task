@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "gatsby";
+import { useStaticQuery, graphql, Link } from "gatsby";
 import AppBar from "@material-ui/core/AppBar";
 import IconButton from "@material-ui/core/IconButton";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -14,6 +14,7 @@ import Hidden from "@material-ui/core/Hidden";
 import Drawer from "@material-ui/core/Drawer";
 
 import MDXProvider from "./MDXProvider";
+import SEO from "../components/SEO";
 
 const drawerWidth = 200;
 
@@ -46,6 +47,10 @@ const styles = (theme: Theme) => ({
   content: {
     flexGrow: 1,
     padding: theme.spacing.unit * 3,
+    maxWidth: "100%",
+    [theme.breakpoints.up("sm")]: {
+      maxWidth: `calc(100% - ${drawerWidth}px)`
+    },
     "& > *:not(:first-child)": {
       margin: `${theme.spacing.unit * 2}px 0`
     }
@@ -58,8 +63,22 @@ const styles = (theme: Theme) => ({
   }
 });
 
-const BaseLayout = ({ classes, children }) => {
+const BaseLayout = ({
+  classes,
+  children,
+  pageContext: { frontmatter = { title: "" } }
+}) => {
+  const { title } = frontmatter;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const headerData = useStaticQuery(graphql`
+    query HeaderQuery {
+      site {
+        siteMetadata {
+          title
+        }
+      }
+    }
+  `);
 
   function handleDrawerToggle() {
     setMobileOpen(!mobileOpen);
@@ -94,12 +113,15 @@ const BaseLayout = ({ classes, children }) => {
       <List>
         <NavListItem href="/" label="Home" />
         <NavListItem href="/installation" label="Installation" />
+        <NavListItem href="/usage" label="Usage" />
+        <NavListItem href="/configuration" label="Configuration" />
       </List>
     </div>
   );
 
   return (
     <div className={classes.root}>
+      <SEO title={title} />
       <AppBar position="fixed" className={classes.appBar}>
         <Toolbar>
           <IconButton
@@ -111,7 +133,7 @@ const BaseLayout = ({ classes, children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" color="inherit" noWrap>
-            useTask
+            {title} | {headerData.site.siteMetadata.title}
           </Typography>
         </Toolbar>
       </AppBar>
@@ -147,7 +169,10 @@ const BaseLayout = ({ classes, children }) => {
       </nav>
       <main className={classes.content}>
         <div className={classes.toolbar} />
-        <MDXProvider>{children}</MDXProvider>
+        <MDXProvider>
+          {title && <Typography variant="h1">{title}</Typography>}
+          {children}
+        </MDXProvider>
       </main>
     </div>
   );

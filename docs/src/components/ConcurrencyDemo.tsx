@@ -3,7 +3,6 @@ import { withStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import useTask, { timeout } from "use-task";
-import { Typography } from "@material-ui/core";
 
 const styles = (theme: Theme) => ({
   task: {
@@ -22,7 +21,7 @@ const styles = (theme: Theme) => ({
   }
 });
 
-const ConcurrencyDemo = ({ title, keep, classes, ...rest }) => {
+const ConcurrencyDemo = ({ keep, classes, ...rest }) => {
   const [fillProgressBar, fillProgressBarTask] = useTask(
     function*(setProgress) {
       let ticks = 0;
@@ -47,7 +46,6 @@ const ConcurrencyDemo = ({ title, keep, classes, ...rest }) => {
 
   return (
     <div {...rest}>
-      <Typography variant="h6">{title}</Typography>
       <Button
         size="small"
         variant="contained"

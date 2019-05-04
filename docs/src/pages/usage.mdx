@@ -1,0 +1,49 @@
+---
+title: Usage
+---
+
+A **Task** represents a series of asynchronous steps that you want to take, one after another. If the component defining the task is unmounted while the task is running, the task will be aborted.
+
+A task is defined using a [Generator][generator] function. You can think of it a lot like `async/await`, but instead of using `await` with each promise, you use `yield`.
+
+Because it is built using a Generator, the task can choose to stop running the function at any `yield`. This allows us to abort a running task, meaning that nothing past the last `yield` will be executed.
+
+A task can be aborted:
+
+1. When the component that defined it is unmounted
+2. Based on the `keep` configuration of the task
+3. Manually using `AbortController`
+
+```jsx
+import useTask, { timeout } from "use-task";
+
+function MySearchComponent() {
+  const [performSearch, searchState] = useTask(function*(term) {
+    yield timeout(150); // Debounce while user is typing
+
+    const result = yield fetch(`https://search.api.com?term=${term}`);
+    const searchResults = yield result.json();
+
+    return searchResults;
+  });
+
+  return (
+    <div>
+      <input
+        onInput={event => {
+          perform(event.target.value);
+        }}
+      />
+      {searchState.lastSuccessful && (
+        <ul>
+          {results.map(result => (
+            <li>{result}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+```
+
+[generator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator
