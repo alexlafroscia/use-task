@@ -21,7 +21,7 @@ const styles = (theme: Theme) => ({
   }
 });
 
-const ConcurrencyDemo = ({ keep, classes, ...rest }) => {
+const ConcurrencyDemo = ({ keep, maxConcurrent, classes, ...rest }) => {
   const [fillProgressBar, fillProgressBarTask] = useTask(
     function*(setProgress) {
       let ticks = 0;
@@ -34,7 +34,7 @@ const ConcurrencyDemo = ({ keep, classes, ...rest }) => {
         ticks++;
       }
     },
-    { keep }
+    { keep, maxConcurrent }
   );
 
   const [progressBars, setProgressBars] = useState<

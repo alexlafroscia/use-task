@@ -36,3 +36,37 @@ If the task is performed again while another instance is running, the new instan
 All instances of a task will be kept; a task instance will never be aborted based on performing the task again.
 
 <Demo keep="all" />
+
+
+## Max Concurrent
+
+The `maxConcurrent` property defines how many task instances should be run simultaneously. In conjunction with `keep: "all"`, if a task is invoked while `maxConcurrent` task instances are already running, it will be queued.
+
+```js
+const [perform] = UseTask(
+  function*() {
+    // ...
+  },
+  { maxConcurrent: 3 }
+);
+```
+
+### `all` with `maxConcurrent: 3`
+
+All instances of a task will kept; only 3 will be run at a time.
+
+<Demo keep="all" maxConcurrent={3} />
+
+
+### `first` with `maxConcurrent: 3`
+
+In conjunction with `keep: "first"`, if a task is invoked while more than `maxConcurrent` task instances are running, the new instance will be immediately cancelled.
+
+<Demo keep="first" maxConcurrent={3} />
+
+
+### `last` with `maxConcurrent: 3`
+
+In conjunction with `keep: "last"`, if a task is invoked while more than `maxConcurrent` task instances are running, the oldest running instance will be immediately cancelled and the new instance run.
+
+<Demo keep="last" maxConcurrent={3} />
