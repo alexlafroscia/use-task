@@ -6,6 +6,8 @@ export default async function perform<F extends AnyFunction>(
   task: TaskInstance<F>,
   args: Parameters<F>
 ) {
+  task.dispatch({ type: "RUN", instance: task });
+
   // Required to allow a user to catch an error even if it is
   // thrown synchronously within the task
   await timeout(0);

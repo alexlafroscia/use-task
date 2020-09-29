@@ -7,11 +7,12 @@ import Deferred from "./utils/deferred";
 class TaskInstance<Func extends AnyFunction> extends Deferred<Result<Func>>
   implements RefObject<TaskInstanceState<Result<Func>>> {
   fn: Func;
+  args: Parameters<Func>;
 
   [Symbol.toStringTag] = "TaskInstance";
 
   current: TaskInstanceState<Result<Func>> = {
-    isRunning: true,
+    isRunning: false,
     isCancelled: false,
     isComplete: false
   };
@@ -21,12 +22,17 @@ class TaskInstance<Func extends AnyFunction> extends Deferred<Result<Func>>
    */
   abortController: AbortController = new AbortController();
 
-  private dispatch: (value: Action<Func>) => void;
+  dispatch: (value: Action<Func>) => void;
 
-  constructor(fn: Func, dispatch: (value: Action<Func>) => void) {
+  constructor(
+    fn: Func,
+    args: Parameters<Func>,
+    dispatch: (value: Action<Func>) => void
+  ) {
     super();
 
     this.fn = fn;
+    this.args = args;
     this.dispatch = dispatch;
 
     dispatch({ type: "BEGIN", instance: this });

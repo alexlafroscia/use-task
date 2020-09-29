@@ -9,13 +9,19 @@ import {
 } from "./types";
 import useIsMounted from "./hooks/use-is-mounted";
 import useUnmountWithState from "./hooks/use-unmount-with-state";
-import { cancelAllInstances } from "./utils/cancellation";
+import {
+  cancelAllInstances,
+  cancelInstancesExceptLastN
+} from "./utils/cancellation";
 
 export default function useTaskWithSignal<T extends SignalReceivingFunction>(
   taskDefinition: T,
-  { keep = "last" }: UseTaskConfig = {}
+  {
+    keep = "last",
+    maxConcurrent = keep === "all" ? Infinity : 1
+  }: UseTaskConfig = {}
 ): UseTaskWithSignalResult<T> {
-  const [taskState, dispatch] = useTaskStateReducer<T>(keep);
+  const [taskState, dispatch] = useTaskStateReducer<T>(keep, maxConcurrent);
 
   if (keep !== taskState.keep) {
     // eslint-disable-next-line no-console
@@ -24,38 +30,46 @@ export default function useTaskWithSignal<T extends SignalReceivingFunction>(
 
   const isMountedRef = useIsMounted();
   const derivedState = useDerivedState<T>(taskState);
+  const { currentRunningCount, nextInstanceToRun } = derivedState;
 
   useUnmountWithState(taskState, currentTaskState => {
     cancelAllInstances(currentTaskState.instances);
   });
 
+  if (currentRunningCount < maxConcurrent && nextInstanceToRun) {
+    perform(nextInstanceToRun, [
+      nextInstanceToRun.abortController.signal,
+      ...nextInstanceToRun.args
+    ] as Parameters<T>);
+  }
+
   const runCallback = useCallback(
     (...args) => {
-      const instance = new TaskInstance(taskDefinition, action => {
-        if (isMountedRef.current) {
-          dispatch(action);
+      const instance = new TaskInstance(
+        taskDefinition,
+        args as Parameters<T>,
+        action => {
+          if (isMountedRef.current) {
+            dispatch(action);
+          }
         }
-      });
+      );
 
-      if (keep === "first" && derivedState.isRunning) {
+      if (keep === "first" && currentRunningCount >= maxConcurrent) {
         instance.abortController.abort();
         return instance;
       }
 
-      if (keep === "last" && derivedState.isRunning) {
-        cancelAllInstances(taskState.instances);
+      if (keep === "last" && currentRunningCount >= maxConcurrent) {
+        cancelInstancesExceptLastN(taskState.instances, maxConcurrent - 1);
       }
-
-      perform(instance, [
-        instance.abortController.signal,
-        ...args
-      ] as Parameters<T>);
 
       return instance;
     },
     [
       derivedState.isRunning,
       keep,
+      maxConcurrent,
       taskDefinition,
       taskState.instances,
       dispatch,

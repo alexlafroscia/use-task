@@ -30,6 +30,8 @@ export type KeepValue = "first" | "last" | "all";
 export type TaskState<F extends AnyFunction> = {
   isRunning: boolean;
   performCount: number;
+  currentRunningCount: number;
+  nextInstanceToRun?: TaskInstance<F>;
   lastSuccessful?: TaskInstanceState<Result<F>>;
   cancelAll: () => void;
 };
@@ -44,6 +46,7 @@ export interface TaskInstanceState<T> {
 
 export type UseTaskConfig = {
   keep?: KeepValue;
+  maxConcurrent?: number;
 };
 
 export type UseTaskResult<T extends AnyFunction> = [

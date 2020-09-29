@@ -12,6 +12,7 @@ import { cancelAllInstances } from "./utils/cancellation";
 
 export type InternalTaskState<F extends AnyFunction> = {
   keep: KeepValue;
+  maxConcurrent: number;
   instances: TaskInstance<F>[];
   lastSuccessful?: TaskInstance<F>;
 };
@@ -23,6 +24,10 @@ interface BaseAction<F extends AnyFunction> {
 
 interface Begin<F extends AnyFunction> extends BaseAction<F> {
   type: "BEGIN";
+}
+
+interface Run<F extends AnyFunction> extends BaseAction<F> {
+  type: "RUN";
 }
 
 interface Complete<F extends AnyFunction> extends BaseAction<F> {
@@ -42,6 +47,7 @@ interface Cancel<F extends AnyFunction> extends BaseAction<F> {
 
 export type Action<F extends AnyFunction> =
   | Begin<F>
+  | Run<F>
   | Complete<F>
   | Error<F>
   | Cancel<F>;
@@ -65,10 +71,28 @@ function updateStateForInstance<F extends AnyFunction>(
   });
 }
 
+function isWaitingToRun<F extends AnyFunction>(instance: TaskInstance<F>) {
+  const { current } = instance;
+  return !current.isRunning && !current.isComplete;
+}
+
 const reducer = (state, action: Action<any>) => {
   switch (action.type) {
     case "BEGIN":
       return { ...state, instances: [...state.instances, action.instance] };
+    case "RUN":
+      return {
+        ...state,
+        instances: updateStateForInstance(
+          state.instances,
+          action.instance,
+          () => ({
+            isComplete: false,
+            isRunning: true,
+            isCancelled: false
+          })
+        )
+      };
     case "COMPLETE":
       return {
         ...state,
@@ -117,9 +141,13 @@ const reducer = (state, action: Action<any>) => {
   }
 };
 
-export function useTaskStateReducer<T extends AnyFunction>(keep: KeepValue) {
+export function useTaskStateReducer<T extends AnyFunction>(
+  keep: KeepValue,
+  maxConcurrent: number
+) {
   return useReducer<TaskStateReducer<T>>(reducer, {
     keep,
+    maxConcurrent,
     instances: [],
     lastSuccessful: undefined
   });
@@ -131,6 +159,9 @@ export function useDerivedState<T extends AnyFunction>(
   return useMemo<TaskState<T>>(
     () => ({
       isRunning: taskState.instances.some(t => t.current.isRunning),
+      currentRunningCount: taskState.instances.filter(t => t.current.isRunning)
+        .length,
+      nextInstanceToRun: taskState.instances.find(isWaitingToRun),
       performCount: taskState.instances.length,
       lastSuccessful:
         taskState.lastSuccessful && taskState.lastSuccessful.current,
