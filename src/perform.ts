@@ -28,7 +28,7 @@ export default async function perform<F extends AnyFunction>(
       // a user can treat the `yield` like `async/await` and get the
       // last value out of it. We can also use this for nested tasks
       try {
-        const { value, done } = generator.next(lastResolvedValue);
+        const { value, done } = await generator.next(lastResolvedValue);
 
         if (value instanceof TaskInstance) {
           // Cancel the "child" when the "parent" is cancelled

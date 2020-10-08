@@ -67,3 +67,28 @@ test("it can perform a generator function", async () => {
   expect(done).toBeCalled();
   expect(stateFor(result).isRunning).toBe(false);
 });
+
+test("it can perform an async generator function", async () => {
+  const done = jest.fn();
+
+  const { result, waitForNextUpdate } = renderHook(() =>
+    useTask(async function*() {
+      yield timeout(0);
+      done();
+    })
+  );
+
+  expect(stateFor(result).isRunning).toBe(false);
+  expect(stateFor(result).performCount).toBe(0);
+
+  act(() => {
+    perform(result);
+  });
+
+  expect(stateFor(result).isRunning).toBe(true);
+
+  await waitForNextUpdate();
+
+  expect(done).toBeCalled();
+  expect(stateFor(result).isRunning).toBe(false);
+});
